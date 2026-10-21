@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class EnsureAdmin
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if (! $request->user()) {
+            return redirect()->route('admin.login');
+        }
+        if (! $request->user()->is_admin) {
+            abort(403, 'Esta sección es solo para administradores.');
+        }
+
+        return $next($request);
+    }
+}

@@ -1,0 +1,543 @@
+{
+ "colors": {
+  "blanco": [
+   "Blanco",
+   "#f3f1ec"
+  ],
+  "negro": [
+   "Negro",
+   "#1d1c1b"
+  ],
+  "gris-melange": [
+   "Gris melange",
+   "#9a9a98"
+  ],
+  "arena": [
+   "Arena",
+   "#d8c6a5"
+  ],
+  "verde-salvia": [
+   "Verde salvia",
+   "#9db09a"
+  ],
+  "oliva": [
+   "Oliva",
+   "#5f6340"
+  ],
+  "azul-marino": [
+   "Azul marino",
+   "#1f2a44"
+  ],
+  "celeste": [
+   "Celeste",
+   "#a9c9e6"
+  ],
+  "rosa": [
+   "Rosa empolvado",
+   "#e8b9b5"
+  ],
+  "lila": [
+   "Lila",
+   "#b7a3d6"
+  ],
+  "naranja": [
+   "Naranja",
+   "#f26a21"
+  ],
+  "crema": [
+   "Crema",
+   "#ece3cf"
+  ],
+  "cobalto": [
+   "Azul cobalto",
+   "#2846c4"
+  ],
+  "verde-bosque": [
+   "Verde bosque",
+   "#244233"
+  ],
+  "chocolate": [
+   "Chocolate",
+   "#4a3022"
+  ],
+  "plateado": [
+   "Plateado",
+   "#c9ccd1"
+  ],
+  "cereza": [
+   "Cereza",
+   "#a51e2c"
+  ],
+  "natural": [
+   "Natural",
+   "#e9dfc8"
+  ]
+ },
+ "categories": [
+  {
+   "slug": "remeras",
+   "name": "Remeras",
+   "desc": "Básicas y estampadas, de algodón."
+  },
+  {
+   "slug": "buzos",
+   "name": "Buzos",
+   "desc": "Canguros y cuello redondo de frisa."
+  },
+  {
+   "slug": "camperas",
+   "name": "Camperas",
+   "desc": "Inflables, livianas y abrigadas."
+  },
+  {
+   "slug": "pantalones",
+   "name": "Pantalones",
+   "desc": "Joggers y shorts."
+  },
+  {
+   "slug": "accesorios",
+   "name": "Accesorios",
+   "desc": "Gorras y bolsos."
+  }
+ ],
+ "products": [
+  {
+   "slug": "remera-terere-club",
+   "name": "Remera Tereré Club",
+   "cat": "remeras",
+   "type": "tee",
+   "print": {
+    "kind": "terere",
+    "y": 470
+   },
+   "colors": [
+    "blanco",
+    "verde-salvia",
+    "negro"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 139000,
+   "featured": true,
+   "isNew": true,
+   "desc": "Remera de algodón peinado 24/1 con estampa al agua «Tereré Club». Calce regular, cuello ribeteado y costuras reforzadas. Para el que no larga la guampa ni en invierno."
+  },
+  {
+   "slug": "remera-mbarete-oversize",
+   "name": "Remera Mbarete oversize",
+   "cat": "remeras",
+   "type": "tee",
+   "oversize": true,
+   "print": {
+    "kind": "mbarete",
+    "y": 450,
+    "scale": 0.8
+   },
+   "colors": [
+    "negro",
+    "arena",
+    "cereza"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 159000,
+   "compare": 189000,
+   "featured": true,
+   "desc": "Corte oversize con hombro caído y tela pesada de 220 g. Estampa «Mbarete» en serigrafía. Se usa suelta, con jean o jogger."
+  },
+  {
+   "slug": "remera-nanduti",
+   "name": "Remera Ñandutí",
+   "cat": "remeras",
+   "type": "tee",
+   "print": {
+    "kind": "nanduti",
+    "y": 500,
+    "scale": 0.95
+   },
+   "colors": [
+    "blanco",
+    "rosa",
+    "celeste"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 149000,
+   "isNew": true,
+   "desc": "Homenaje al encaje de Itauguá: el ñandutí en una estampa grande al frente. Algodón suave, calce regular.",
+   "featured": true
+  },
+  {
+   "slug": "remera-asu-city",
+   "name": "Remera Asu City",
+   "cat": "remeras",
+   "type": "tee",
+   "print": {
+    "kind": "asu",
+    "y": 460,
+    "scale": 0.95
+   },
+   "colors": [
+    "celeste",
+    "blanco",
+    "azul-marino"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 139000,
+   "desc": "Asunción desde 1537. Remera de algodón con estampa tipográfica y calce regular."
+  },
+  {
+   "slug": "remera-basica-algodon",
+   "name": "Remera básica de algodón",
+   "cat": "remeras",
+   "type": "tee",
+   "print": null,
+   "colors": [
+    "blanco",
+    "negro",
+    "gris-melange",
+    "azul-marino",
+    "oliva"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 89000,
+   "featured": true,
+   "desc": "La que se usa todos los días. Algodón peinado, cuello que no se deforma y cinco colores para combinar con todo."
+  },
+  {
+   "slug": "buzo-canguro-jopara",
+   "name": "Buzo canguro Jopará",
+   "cat": "buzos",
+   "type": "hoodie",
+   "print": {
+    "kind": "jopara",
+    "y": 540,
+    "scale": 0.8
+   },
+   "colors": [
+    "lila",
+    "gris-melange",
+    "negro"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 289000,
+   "compare": 329000,
+   "featured": true,
+   "isNew": true,
+   "desc": "Buzo con capucha forrada, bolsillo canguro y puños elastizados. Frisa de algodón para las mañanas frescas."
+  },
+  {
+   "slug": "buzo-canguro-basico",
+   "name": "Buzo canguro básico",
+   "cat": "buzos",
+   "type": "hoodie",
+   "print": null,
+   "colors": [
+    "oliva",
+    "naranja",
+    "crema"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 249000,
+   "desc": "Liso, cómodo y de frisa pesada. Capucha con cordón y bolsillo canguro."
+  },
+  {
+   "slug": "buzo-pora",
+   "name": "Buzo cuello redondo Porã",
+   "cat": "buzos",
+   "type": "crew",
+   "print": {
+    "kind": "pora",
+    "y": 440
+   },
+   "colors": [
+    "cobalto",
+    "gris-melange",
+    "crema"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 259000,
+   "isNew": true,
+   "desc": "«Porã» es lindo en guaraní. Buzo de cuello redondo, frisa suave y puños con elástico."
+  },
+  {
+   "slug": "campera-inflable-chaco",
+   "name": "Campera inflable Chaco",
+   "cat": "camperas",
+   "type": "puffer",
+   "colors": [
+    "naranja",
+    "negro",
+    "verde-bosque"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 459000,
+   "compare": 599000,
+   "featured": true,
+   "desc": "Liviana, abrigada y con mucha onda. Relleno sintético, cuello alto y cierre frontal. Se guarda en su propia bolsa."
+  },
+  {
+   "slug": "campera-inflable-corta",
+   "name": "Campera inflable corta",
+   "cat": "camperas",
+   "type": "puffer",
+   "crop": true,
+   "colors": [
+    "plateado",
+    "chocolate",
+    "lila"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL"
+   ],
+   "price": 419000,
+   "isNew": true,
+   "desc": "Versión corta para combinar con tiro alto. Brillo suave, cuello alto y puños elastizados."
+  },
+  {
+   "slug": "gorra-terere-club",
+   "name": "Gorra Tereré Club",
+   "cat": "accesorios",
+   "type": "cap",
+   "print": {
+    "kind": "py",
+    "y": 470,
+    "scale": 1.2
+   },
+   "colors": [
+    "negro",
+    "crema",
+    "verde-bosque"
+   ],
+   "sizes": [
+    "Único"
+   ],
+   "price": 99000,
+   "desc": "Gorra de seis paneles con bordado al frente y regulador trasero.",
+   "featured": true
+  },
+  {
+   "slug": "gorra-dad-hat",
+   "name": "Gorra dad hat t_shirt",
+   "cat": "accesorios",
+   "type": "cap",
+   "print": {
+    "kind": "logo",
+    "y": 480,
+    "scale": 1.4
+   },
+   "colors": [
+    "cobalto",
+    "arena",
+    "cereza"
+   ],
+   "sizes": [
+    "Único"
+   ],
+   "price": 95000,
+   "desc": "Visera curva, copa baja y logo bordado. Algodón lavado."
+  },
+  {
+   "slug": "jogger-urbano",
+   "name": "Jogger urbano",
+   "cat": "pantalones",
+   "type": "jogger",
+   "colors": [
+    "negro",
+    "gris-melange",
+    "oliva"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL"
+   ],
+   "price": 219000,
+   "featured": true,
+   "desc": "Jogger de frisa con cintura elástica, cordón y puños. Bolsillos laterales profundos."
+  },
+  {
+   "slug": "short-deportivo",
+   "name": "Short deportivo",
+   "cat": "pantalones",
+   "type": "short",
+   "colors": [
+    "negro",
+    "azul-marino",
+    "verde-salvia"
+   ],
+   "sizes": [
+    "S",
+    "M",
+    "L",
+    "XL"
+   ],
+   "price": 149000,
+   "desc": "Short de algodón liviano con cintura elástica. Para el calor de diciembre y de casi todo el año."
+  },
+  {
+   "slug": "tote-nanduti",
+   "name": "Bolso tote Ñandutí",
+   "cat": "accesorios",
+   "type": "tote",
+   "print": {
+    "kind": "nanduti",
+    "y": 720,
+    "scale": 1.25,
+    "ink": "#1a1a1a"
+   },
+   "colors": [
+    "natural",
+    "negro"
+   ],
+   "sizes": [
+    "Único"
+   ],
+   "price": 79000,
+   "isNew": true,
+   "desc": "Bolso de lona gruesa con estampa ñandutí. Entra la notebook, el termo y todo lo demás."
+  }
+ ],
+ "slides": [
+  {
+   "title": "Abrigo que se nota",
+   "text": "Liviana, abrigada y con cuello alto. La campera inflable Chaco te acompaña de la facultad a la previa sin pesar nada.",
+   "button": "Ver la campera",
+   "product": "campera-inflable-chaco",
+   "main": [
+    "campera-inflable-chaco",
+    "naranja"
+   ],
+   "second": [
+    "campera-inflable-chaco",
+    "negro"
+   ],
+   "thumb": [
+    "campera-inflable-corta",
+    "plateado"
+   ],
+   "bg": "#3a2418",
+   "accent": "#ff7a2f",
+   "tagline": "Calor, con estilo."
+  },
+  {
+   "title": "Jopará de estilos",
+   "text": "Buzo canguro de frisa con capucha forrada. Mezclalo con lo que tengas: queda bien con todo.",
+   "button": "Ver el buzo",
+   "product": "buzo-canguro-jopara",
+   "main": [
+    "buzo-canguro-jopara",
+    "lila"
+   ],
+   "second": [
+    "buzo-canguro-jopara",
+    "negro"
+   ],
+   "thumb": [
+    "buzo-pora",
+    "cobalto"
+   ],
+   "bg": "#2d2440",
+   "accent": "#c8b4ff",
+   "tagline": "Suave por dentro, mbarete por fuera."
+  },
+  {
+   "title": "Tereré Club",
+   "text": "La remera para la ronda de la tarde. Algodón peinado, estampa al agua y tres colores.",
+   "button": "Ver la remera",
+   "product": "remera-terere-club",
+   "main": [
+    "remera-terere-club",
+    "verde-salvia"
+   ],
+   "second": [
+    "remera-terere-club",
+    "blanco"
+   ],
+   "thumb": [
+    "gorra-terere-club",
+    "negro"
+   ],
+   "bg": "#1f3326",
+   "accent": "#b9e4a8",
+   "tagline": "Hecho para el calor de acá."
+  },
+  {
+   "title": "Gorras con onda",
+   "text": "Seis paneles, bordado al frente y regulador. Completá el look por menos de cien mil.",
+   "button": "Ver gorras",
+   "product": "gorra-dad-hat",
+   "main": [
+    "gorra-dad-hat",
+    "cobalto"
+   ],
+   "second": [
+    "gorra-terere-club",
+    "crema"
+   ],
+   "thumb": [
+    "tote-nanduti",
+    "natural"
+   ],
+   "bg": "#14215e",
+   "accent": "#9fb4ff",
+   "tagline": "El detalle que faltaba."
+  }
+ ]
+}

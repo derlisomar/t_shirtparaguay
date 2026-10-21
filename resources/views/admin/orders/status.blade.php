@@ -1,0 +1,1 @@
+<span class="pill {{ ['entregado' => 'ok', 'finalizado' => 'ok', 'cancelado' => 'err', 'pendiente' => 'warn', 'procesado' => 'acc', 'enviado' => 'acc'][$o->status] ?? '' }}">{{ $o->statusLabel() }}</span>
