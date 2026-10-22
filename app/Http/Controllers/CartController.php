@@ -45,9 +45,10 @@ class CartController extends Controller
         $qty = $data['qty'] ?? 1;
         $inCart = Cart::raw()[$variant->id] ?? 0;
 
-        if (! $variant->product->is_active || $variant->stock < $inCart + $qty) {
-            $msg = $variant->stock > 0
-                ? "Solo hay {$variant->stock} en stock de este talle."
+        $available = $variant->available();
+        if (! $variant->product->is_active || $available < $inCart + $qty) {
+            $msg = $available > 0
+                ? "Solo hay {$available} disponibles de este talle y color".($inCart ? " (ya tenés {$inCart} en el carrito)." : '.')
                 : 'Ese talle está agotado.';
 
             return $request->expectsJson()
@@ -66,7 +67,7 @@ class CartController extends Controller
 
     public function update(Request $request, ProductVariant $variant)
     {
-        $qty = max(0, min((int) $request->input('qty'), $variant->stock));
+        $qty = max(0, min((int) $request->input('qty'), $variant->available()));
         Cart::set($variant->id, $qty);
 
         return $request->expectsJson()

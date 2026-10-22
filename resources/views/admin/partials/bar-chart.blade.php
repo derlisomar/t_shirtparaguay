@@ -39,7 +39,7 @@
           @endforeach
           @if (count($series) > 1)<span><b>Total: {{ $money ? money($totals[$i]) : $totals[$i] }}</b></span>@endif
         </div>
-        <small @class(['hide' => $i % $every !== 0 && $i !== count($data) - 1])>{{ $d['label'] }}</small>
+        <small @class(['hide' => $i !== count($data) - 1 && ($i % $every !== 0 || ($every > 1 && count($data) - 1 - $i < 3))])>{{ $d['label'] }}</small>
       </div>
     @endforeach
   </div>

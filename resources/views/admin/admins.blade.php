@@ -6,7 +6,7 @@
     <thead><tr><th>Nombre</th><th>Correo</th><th></th></tr></thead>
     @foreach ($admins as $a)
       <tr><td><b>{{ $a->name }}</b>@if($a->id === auth()->id()) <span class="pill">Vos</span>@endif</td><td>{{ $a->email }}</td>
-      <td class="r">@if($a->id !== auth()->id())<button type="button" class="btn sm ghost" data-delete="{{ route('admin.admins.destroy', $a) }}" data-confirm="¿Quitarle el acceso al panel a {{ $a->name }}?">Quitar acceso</button>@endif</td></tr>
+      <td class="r">@if($a->id !== auth()->id())<button type="button" class="btn sm ghost" data-delete="{{ route('admin.admins.destroy', $a) }}" data-confirm="¿Quitarle el acceso al panel a {{ $a->name }}?" data-ok="Sí, quitar acceso">Quitar acceso</button>@endif</td></tr>
     @endforeach
   </table></div>
   <form method="post" action="{{ route('admin.admins.store') }}" class="box" style="display:grid;gap:12px">

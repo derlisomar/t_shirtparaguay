@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Support\Accounts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -21,12 +21,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $cred = $request->validate(['email' => 'required|email', 'password' => 'required']);
+        $request->validate(['login' => 'required|string|max:160', 'password' => 'required'], [
+            'login.required' => 'Poné tu usuario.',
+            'password.required' => 'Poné tu contraseña.',
+        ]);
         $cart = session('cart', []);
 
-        if (! Auth::attempt($cred, $request->boolean('remember'))) {
-            return back()->withErrors(['email' => 'El correo o la contraseña no coinciden.'])->onlyInput('email');
+        // Se puede entrar con el usuario, el número de documento o el correo
+        $user = Accounts::findForLogin($request->input('login'));
+        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
+            return back()->withErrors(['login' => 'El usuario o la contraseña no coinciden.'])->onlyInput('login');
         }
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
         session(['cart' => $cart]); // el carrito se conserva al ingresar
 
@@ -35,22 +41,9 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:120',
-            'email' => 'required|email|max:190|unique:users,email',
-            'phone' => 'nullable|string|max:40',
-            'password' => ['required', 'confirmed', Password::min(8)],
-        ], [
-            'email.unique' => 'Ya hay una cuenta con ese correo. Probá ingresar.',
-            'password.confirmed' => 'Las contraseñas no coinciden.',
-            'password.min' => 'La contraseña tiene que tener al menos 8 caracteres.',
-        ]);
-        $cart = session('cart', []);
-
-        $user = User::create($data + ['is_admin' => false]);
-        Auth::login($user, true);
-        $request->session()->regenerate();
-        session(['cart' => $cart]);
+        Accounts::normalize($request);
+        $data = $request->validate(Accounts::rules(), Accounts::messages());
+        Accounts::register($request, $data);
 
         return redirect()->intended(route('account'))->with('ok', '¡Bienvenido/a a '.setting('store_name', 't_shirtparaguay').'!');
     }
@@ -68,7 +61,7 @@ class AuthController extends Controller
     public function showAdminLogin()
     {
         if (auth()->user()?->is_admin) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.reports');
         }
 
         return view('admin.login');
@@ -82,6 +75,6 @@ class AuthController extends Controller
         }
         $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.dashboard'));
+        return redirect()->intended(route('admin.reports'));
     }
 }

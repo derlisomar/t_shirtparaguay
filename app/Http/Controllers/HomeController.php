@@ -14,7 +14,7 @@ class HomeController extends Controller
             ->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get();
 
         $with = ['images', 'variants.color', 'variants.size'];
-        $categories = Category::active()->withCount(['products' => fn ($q) => $q->active()])->get();
+        $categories = Category::active()->roots()->get();
         $new = Product::active()->with($with)->where('is_new', true)->latest()->take(8)->get();
         $featured = Product::active()->with($with)->where('is_featured', true)->latest()->take(8)->get();
         $best = Product::active()->with($with)->orderByDesc('sold_count')->take(4)->get();

@@ -5,7 +5,7 @@
   $colors = $product->colorOptions();
   $sizes = $product->variants->groupBy('size_id');
   $firstColor = $colors->first();
-  $stock = $product->totalStock();
+  $stock = $product->availableStock();
 @endphp
 <article class="card">
   <a href="{{ route('product.show', $product) }}" class="media" aria-label="{{ $product->name }}">
@@ -24,7 +24,7 @@
       <div class="row">
         @foreach ($product->sizeOptions() as $size)
           @php($v = $product->variants->first(fn ($v) => $v->size_id === $size->id && (! $firstColor || $v->color_id === $firstColor->id)))
-          <button type="button" data-quick-add="{{ $v?->id }}" @disabled(! $v || $v->stock <= 0)>{{ $size->name }}</button>
+          <button type="button" data-quick-add="{{ $v?->id }}" @disabled(! $v || $v->available() <= 0)>{{ $size->name }}</button>
         @endforeach
       </div>
     </div>

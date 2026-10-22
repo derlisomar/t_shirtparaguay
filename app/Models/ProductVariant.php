@@ -23,6 +23,15 @@ class ProductVariant extends Model
         return $this->belongsTo(Color::class);
     }
 
+    /**
+     * Lo que la tienda web puede vender: el stock menos lo que ya pidieron otros
+     * clientes en pedidos que todavía no se procesaron.
+     */
+    public function available(): int
+    {
+        return max(0, $this->stock - \App\Support\Stock::reserved($this->id));
+    }
+
     public function label(): string
     {
         return trim(($this->size?->name ?? '').($this->color ? ' · '.$this->color->name : ''));

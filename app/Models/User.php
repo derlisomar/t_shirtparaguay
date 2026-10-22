@@ -10,7 +10,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'phone', 'document', 'city', 'address', 'is_admin', 'is_wholesale', 'purchase_limit', 'admin_notes'];
+    protected $fillable = ['name', 'username', 'last_name', 'email', 'password', 'phone', 'document', 'city', 'country', 'address', 'is_admin', 'is_wholesale', 'purchase_limit', 'admin_notes'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -23,6 +23,18 @@ class User extends Authenticatable
             'is_wholesale' => 'boolean',
             'purchase_limit' => 'integer',
         ];
+    }
+
+    /** Nombre y apellido (las cuentas viejas tienen todo en «name») */
+    public function fullName(): string
+    {
+        return trim($this->name.' '.($this->last_name ?? ''));
+    }
+
+    /** Solo el nombre de pila, para saludar */
+    public function firstName(): string
+    {
+        return $this->last_name ? $this->name : \Illuminate\Support\Str::before($this->name, ' ');
     }
 
     public function orders()

@@ -30,7 +30,7 @@ return [
             'label' => 'Tarjeta (POS del local)',
             'gateway' => 'manual',
             'web' => false,
-            'local' => true,
+            'local' => false, // en el local se cobra solo con transferencia o efectivo
         ],
         'tarjeta' => [
             'label' => 'Tarjeta de crédito o débito',

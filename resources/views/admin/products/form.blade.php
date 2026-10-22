@@ -23,11 +23,13 @@
         <div class="form-grid">
           <div class="field full"><label>Nombre</label><input class="input" name="name" value="{{ old('name', $product->name) }}" required placeholder="Ej.: Remera Tereré Club"></div>
           <div class="field full"><label>Descripción</label><textarea class="textarea" name="description" rows="5" placeholder="Tela, calce, detalles…">{{ old('description', $product->description) }}</textarea></div>
-          <div class="field"><label>Precio (Gs.)</label><input class="input" name="price" inputmode="numeric" data-money value="{{ old('price', $product->price ? number_format($product->price, 0, ',', '.') : '') }}" required></div>
-          <div class="field"><label>Precio anterior <span class="help">(para mostrar oferta)</span></label><input class="input" name="compare_price" inputmode="numeric" data-money value="{{ old('compare_price', $product->compare_price ? number_format($product->compare_price, 0, ',', '.') : '') }}"></div>
-          <div class="field"><label>Precio mayorista (Gs.) <span class="help">(opcional)</span></label><input class="input" name="wholesale_price" inputmode="numeric" data-money value="{{ old('wholesale_price', $product->wholesale_price ? number_format($product->wholesale_price, 0, ',', '.') : '') }}" placeholder="Ej.: 95.000"></div>
+          @php($unitPrice = $product->isOnSale() ? $product->compare_price : $product->price)
+          @php($offerPrice = $product->isOnSale() ? $product->price : null)
+          <div class="field"><label>1 · Precio por unidad (Gs.)</label><input class="input" name="unit_price" inputmode="numeric" data-money value="{{ old('unit_price', $unitPrice ? number_format($unitPrice, 0, ',', '.') : '') }}" required></div>
+          <div class="field"><label>2 · Precio de oferta (Gs.) <span class="help">(opcional)</span></label><input class="input" name="offer_price" inputmode="numeric" data-money value="{{ old('offer_price', $offerPrice ? number_format($offerPrice, 0, ',', '.') : '') }}" placeholder="Vacío = sin oferta"></div>
+          <div class="field"><label>3 · Precio mayorista (Gs.) <span class="help">(opcional)</span></label><input class="input" name="wholesale_price" inputmode="numeric" data-money value="{{ old('wholesale_price', $product->wholesale_price ? number_format($product->wholesale_price, 0, ',', '.') : '') }}" placeholder="Ej.: 95.000"></div>
           <div class="field"><label>Mayorista desde <span class="help">(unidades)</span></label><input class="input" name="wholesale_min_qty" type="number" min="0" value="{{ old('wholesale_min_qty', $product->wholesale_min_qty) }}" placeholder="Ej.: 6"></div>
-          <p class="help full" style="margin-top:-4px">El precio mayorista se aplica solo cuando el cliente lleva esa cantidad del producto (sumando talles y colores), o siempre si el cliente está marcado como mayorista en <a href="{{ route('admin.customers.index') }}" style="text-decoration:underline">Clientes</a>. Si dejás vacía la cantidad, solo lo ven los clientes mayoristas.</p>
+          <p class="help full" style="margin-top:-4px">Con oferta, la tienda muestra el precio por unidad tachado y el de oferta al lado. El precio mayorista se aplica solo cuando el cliente lleva esa cantidad del producto (sumando talles y colores), o siempre si el cliente está marcado como mayorista en <a href="{{ route('admin.customers.index') }}" style="text-decoration:underline">Clientes</a>. Si dejás vacía la cantidad, solo lo ven los clientes mayoristas.</p>
         </div>
       </div>
 
@@ -90,7 +92,7 @@
       <div class="box">
         <h2>Organización</h2>
         <div class="field"><label>Categoría</label>
-          <select class="select input" name="category_id" style="border-radius:14px"><option value="">Sin categoría</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(old('category_id', $product->category_id) == $c->id)>{{ $c->name }}</option>@endforeach</select>
+          <select class="select input" name="category_id" style="border-radius:14px"><option value="">Sin categoría</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(old('category_id', $product->category_id) == $c->id)>{{ $c->depth ? '— ' : '' }}{{ $c->name }}</option>@endforeach</select>
         </div>
         <div class="field" style="margin-top:12px"><label>Código (SKU)</label><input class="input" name="sku" value="{{ old('sku', $product->sku) }}"></div>
         <div class="field" style="margin-top:12px"><label>Dirección web <span class="help">(opcional)</span></label><input class="input" name="slug" value="{{ old('slug', $product->slug) }}" placeholder="se arma sola con el nombre"></div>

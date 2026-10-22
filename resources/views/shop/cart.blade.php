@@ -21,12 +21,12 @@
                 <form method="post" action="{{ route('cart.update', $l->variant) }}" style="display:flex;gap:8px;align-items:center">
                   @csrf @method('PATCH')
                   <select class="select" name="qty" data-autosubmit aria-label="Cantidad">
-                    @for ($i = 1; $i <= max($l->qty, min(10, $l->variant->stock)); $i++)<option value="{{ $i }}" @selected($i === $l->qty)>{{ $i }}</option>@endfor
+                    @for ($i = 1; $i <= max($l->qty, min(10, $l->available)); $i++)<option value="{{ $i }}" @selected($i === $l->qty)>{{ $i }}</option>@endfor
                   </select>
                 </form>
                 <form method="post" action="{{ route('cart.remove', $l->variant) }}">@csrf @method('DELETE')<button class="rm" style="background:none;border:0;color:var(--ink-3);text-decoration:underline">Quitar</button></form>
               </div>
-              @if ($l->over_stock)<div class="warn" style="color:var(--danger);font-size:13px">Solo quedan {{ $l->variant->stock }}.</div>@endif
+              @if ($l->over_stock)<div class="warn" style="color:var(--danger);font-size:13px">Solo quedan {{ $l->available }}.</div>@endif
             </div>
           </div>
         @endforeach

@@ -24,9 +24,13 @@ class DatabaseSeeder extends Seeder
             'is_admin' => true,
         ]);
         $demo = User::updateOrCreate(['email' => 'cliente@ejemplo.com'], [
-            'name' => 'Lucía Benítez',
+            'name' => 'Lucía',
+            'last_name' => 'Benítez',
+            'username' => 'lucia',
+            'document' => '4567890',
             'password' => 'cliente123',
             'phone' => '0981 123 456',
+            'country' => 'Paraguay',
             'city' => 'Asunción',
             'address' => 'Av. España 1234',
         ]);
@@ -68,10 +72,44 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        // Líneas dentro de las categorías (se ven agrupadas al entrar a Remeras o Pantalones y shorts)
+        $lines = [
+            'remeras' => [
+                'remeras-clasicas-40-1' => ['Clásicas hilo 40.1 peinado', 'Corte clásico, algodón peinado hilo 40.1.'],
+                'remeras-clasicas-pima-50-1' => ['Clásicas Cotton Pima hilo 50.1', 'Algodón Pima original hilo 50.1, más suave y fresco.'],
+                'remeras-oversize-30-1' => ['Oversize algodón peinado 30.1', 'Calce holgado, algodón peinado 30.1.'],
+                'remeras-oversize-50-1-suedin' => ['Oversize 50.1 peinado suedin', 'Horma grande, tela suedin hilo 50.1.'],
+            ],
+            'pantalones' => [
+                'shorts-dry-fit-premium' => ['Línea deportiva Dry Fit Premium', 'Shorts livianos de secado rápido.'],
+                'shorts-dry-fit-elastizado' => ['Línea deportiva Dry Fit elastizado', 'Con elastano para moverte cómodo.'],
+                'shorts-de-lino' => ['Shorts de lino', 'Frescos para el verano.'],
+                'joggers' => ['Joggers', 'Frisa liviana con puño.'],
+            ],
+        ];
+        foreach ($lines as $parent => $children) {
+            $o = 0;
+            foreach ($children as $slug => [$name, $desc]) {
+                $cats[$slug] = Category::firstOrCreate(['slug' => $slug], [
+                    'parent_id' => $cats[$parent]->id, 'name' => $name, 'description' => $desc, 'sort_order' => $o++,
+                ]);
+            }
+        }
+        $cats['pantalones']->update(['name' => 'Pantalones y shorts']);
+        $lineOf = [
+            'remera-terere-club' => 'remeras-clasicas-40-1',
+            'remera-basica-algodon' => 'remeras-clasicas-40-1',
+            'remera-nanduti' => 'remeras-clasicas-pima-50-1',
+            'remera-mbarete-oversize' => 'remeras-oversize-30-1',
+            'remera-asu-city' => 'remeras-oversize-50-1-suedin',
+            'short-deportivo' => 'shorts-dry-fit-premium',
+            'jogger-urbano' => 'joggers',
+        ];
+
         $products = [];
         foreach ($data['products'] as $i => $p) {
             $product = Product::updateOrCreate(['slug' => $p['slug']], [
-                'category_id' => $cats[$p['cat']]->id,
+                'category_id' => $cats[$lineOf[$p['slug']] ?? $p['cat']]->id,
                 'name' => $p['name'],
                 'description' => $p['desc'],
                 'sku' => 'TS-'.str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
@@ -135,7 +173,7 @@ class DatabaseSeeder extends Seeder
                     'status' => $status = ($local ? 'finalizado' : ['pendiente', 'procesado', 'enviado', 'finalizado'][intdiv($k, 2) % 4]),
                     'payment_method' => $local ? 'efectivo' : 'transferencia',
                     'payment_status' => $local || $k > 2 ? 'pagado' : 'pendiente',
-                    'customer_name' => $local ? 'Cliente de mostrador' : $demo->name,
+                    'customer_name' => $local ? 'Cliente de mostrador' : $demo->fullName(),
                     'customer_email' => $local ? null : $demo->email,
                     'customer_phone' => $local ? null : $demo->phone,
                     'delivery_method' => $local ? 'retiro' : 'envio',

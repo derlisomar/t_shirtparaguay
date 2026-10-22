@@ -35,10 +35,13 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/salir', [AuthController::class, 'logout'])->name('logout');
 
+// Se puede finalizar la compra sin cuenta: al confirmar se crea con los datos del cliente
+Route::get('/finalizar-compra', [CheckoutController::class, 'show'])->name('checkout');
+Route::post('/finalizar-compra', [CheckoutController::class, 'store'])->name('checkout.store')->middleware('throttle:20,1');
+
 Route::middleware('auth')->group(function () {
-    Route::get('/finalizar-compra', [CheckoutController::class, 'show'])->name('checkout');
-    Route::post('/finalizar-compra', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/pedido/{order}/gracias', [CheckoutController::class, 'thanks'])->name('checkout.thanks');
+    Route::get('/pedido/{order}/boleta', [CheckoutController::class, 'invoice'])->name('checkout.invoice');
 
     Route::get('/mi-cuenta', [AccountController::class, 'index'])->name('account');
     Route::get('/mi-cuenta/pedidos/{order}', [AccountController::class, 'order'])->name('account.order');
@@ -61,7 +64,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/ingresar', [AuthController::class, 'adminLogin'])->middleware('throttle:10,1');
 
     Route::middleware('admin')->group(function () {
-        Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', fn () => redirect()->route('admin.reports'))->name('dashboard');
+        Route::get('reportes', [Admin\ReportController::class, 'index'])->name('reports');
+        Route::get('reportes/exportar/{type}', [Admin\ReportController::class, 'export'])->name('reports.export');
 
         Route::resource('productos', Admin\ProductController::class)
             ->parameters(['productos' => 'product'])->except('show')->names('products');

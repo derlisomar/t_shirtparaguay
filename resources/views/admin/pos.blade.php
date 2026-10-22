@@ -10,7 +10,15 @@
         @foreach ($categories as $c)<button type="button" class="chip" data-pos-cat="{{ $c->id }}">{{ $c->name }}</button>@endforeach
       </div>
     </div>
+    <div class="pos-bar">
+      <p class="help" data-pos-count></p>
+      <div class="seg-tabs sm" role="group" aria-label="Ver como">
+        <button type="button" data-pos-view="grilla" class="on">Cuadrícula</button>
+        <button type="button" data-pos-view="lista">Lista</button>
+      </div>
+    </div>
     <div class="pos-grid" data-pos-grid><p class="help">Cargando…</p></div>
+    <nav class="pager pos-pager" data-pos-pager aria-label="Páginas"></nav>
   </div>
 
   <aside class="ticket-box">

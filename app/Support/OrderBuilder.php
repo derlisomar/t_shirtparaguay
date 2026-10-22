@@ -32,6 +32,7 @@ class OrderBuilder
         return DB::transaction(function () use ($items, $data, $shipping, $discount, $applyStock, $customer, $forceWholesale, $limitMessage) {
             $variants = ProductVariant::with(['product', 'size', 'color'])
                 ->whereIn('id', array_keys($items))->lockForUpdate()->get()->keyBy('id');
+            Stock::forget(); // con las prendas bloqueadas, se recalcula lo reservado
 
             $lines = [];
             foreach ($items as $id => $qty) {
@@ -39,9 +40,14 @@ class OrderBuilder
                 if (! $v || ! $v->product) {
                     throw ValidationException::withMessages(['cart' => 'Un producto del carrito ya no está disponible.']);
                 }
-                if ($qty > $v->stock) {
+                // La web vende lo disponible (descontando lo reservado por pedidos pendientes);
+                // la venta en el local mira el stock que hay en el depósito.
+                $left = $applyStock ? $v->stock : $v->available();
+                if ($qty > $left) {
                     throw ValidationException::withMessages([
-                        'cart' => "Solo quedan {$v->stock} de «{$v->product->name}» ({$v->label()}).",
+                        'cart' => $left > 0
+                            ? "Solo quedan {$left} de «{$v->product->name}» ({$v->label()}). Ajustá la cantidad en el carrito."
+                            : "«{$v->product->name}» ({$v->label()}) se agotó recién. Sacalo del carrito para seguir.",
                     ]);
                 }
                 $lines[] = [$v, $qty];
@@ -98,6 +104,8 @@ class OrderBuilder
                     Product::whereKey($v->product_id)->increment('sold_count', $qty);
                 }
             }
+
+            Stock::forget();
 
             return $order;
         });

@@ -10,7 +10,7 @@
         <h1>Hola de nuevo</h1>
         <p style="color:var(--ink-2)">Ingresá para ver tus pedidos y terminar tu compra.</p>
         @if ($errors->any())<div class="alert err" style="margin:0">{{ $errors->first() }}</div>@endif
-        <div class="field"><label for="e">Correo</label><input class="input" id="e" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email"></div>
+        <div class="field"><label for="e">Usuario</label><input class="input" id="e" name="login" value="{{ old('login') }}" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false"><span style="font-size:13px;color:var(--ink-3)">También podés poner tu número de cédula o tu correo.</span></div>
         <div class="field"><label for="p">Contraseña</label><input class="input" id="p" type="password" name="password" required autocomplete="current-password"></div>
         <label class="check"><input type="checkbox" name="remember" value="1" checked> Recordarme en este dispositivo</label>
         <button class="btn block">Ingresar</button>

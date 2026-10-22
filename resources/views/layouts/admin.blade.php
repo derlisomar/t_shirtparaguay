@@ -17,7 +17,7 @@
   <aside class="side" id="side">
     @include('partials.logo')
     <a class="it sell" href="{{ route('admin.pos') }}"><svg class="i"><use href="#i-store"/></svg> Vender</a>
-    <a class="it {{ request()->routeIs('admin.dashboard') ? 'on' : '' }}" href="{{ route('admin.dashboard') }}"><svg class="i"><use href="#i-box"/></svg> Resumen</a>
+    <a class="it {{ request()->routeIs('admin.reports*') ? 'on' : '' }}" href="{{ route('admin.reports') }}"><svg class="i"><use href="#i-chart"/></svg> Reportes</a>
     <a class="it {{ request()->routeIs('admin.orders.*') ? 'on' : '' }}" href="{{ route('admin.orders.index') }}"><svg class="i"><use href="#i-bag"/></svg> Pedidos @if($pendingCount)<span class="n">{{ $pendingCount }}</span>@endif</a>
     <a class="it {{ request()->routeIs('admin.customers.*') ? 'on' : '' }}" href="{{ route('admin.customers.index') }}"><svg class="i"><use href="#i-user"/></svg> Clientes</a>
     <div class="grp">Catálogo</div>
@@ -52,6 +52,7 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>window.SHOP = { csrf: '{{ csrf_token() }}' };</script>
+<script src="{{ asset_v('vendor/sweetalert2/sweetalert2.all.min.js') }}" defer></script>
 <script src="{{ asset_v('js/shop.js') }}" defer></script>
 <script src="{{ asset_v('js/admin.js') }}" defer></script>
 @stack('scripts')

@@ -2,10 +2,11 @@
   $n = fn ($v) => number_format($v, 0, ',', '.');
   $cur = setting('currency', 'Gs.');
   $logo = setting('logo');
+  $forCustomer = $forCustomer ?? false;
 @endphp
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Comprobante {{ $order->number }}</title>
+<title>{{ $forCustomer ? 'Boleta' : 'Comprobante' }} {{ $order->number }}</title>
 <style>
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
@@ -44,7 +45,11 @@
   @media (max-width: 800px) { .sheet { width: auto; margin: 0; padding: 18px; } .grid { grid-template-columns: 1fr; } .totals { width: 100%; } }
 </style></head>
 <body>
-<div class="bar"><button onclick="window.print()">Imprimir</button><a href="{{ route('admin.orders.ticket', $order) }}">Ver como ticket</a></div>
+@if ($forCustomer)
+  <div class="bar"><button onclick="window.print()">Imprimir o guardar PDF</button><a href="{{ route('account.order', $order) }}">Volver a mi pedido</a><a href="{{ route('catalog') }}">Seguir comprando</a></div>
+@else
+  <div class="bar"><button onclick="window.print()">Imprimir</button><a href="{{ route('admin.orders.ticket', $order) }}">Ver como ticket</a></div>
+@endif
 <div class="sheet">
   <div class="head">
     <div>
@@ -57,14 +62,13 @@
       </div>
     </div>
     <div class="doc">
-      <h1>Comprobante de pedido</h1>
+      <h1>{{ $forCustomer ? 'Boleta de compra' : 'Comprobante de pedido' }}</h1>
       <div class="num">{{ $order->number }}</div>
       <div class="meta">
         Fecha: {{ $order->created_at->format('d/m/Y H:i') }}
         @if ($order->finished_at)<br>Finalizado: {{ $order->finished_at->format('d/m/Y H:i') }}@endif
       </div>
-      <span class="tag {{ ['finalizado' => 'ok', 'entregado' => 'ok', 'cancelado' => 'err', 'pendiente' => 'warn'][$order->status] ?? '' }}">{{ $order->statusLabel() }}</span>
-      <span class="tag {{ $order->payment_status === 'pagado' ? 'ok' : 'warn' }}">{{ $order->payment_status === 'pagado' ? 'Pagado' : 'Pago '.strtolower($order->paymentStatusLabel()) }}</span>
+      {{-- Sin etiquetas de estado: el comprobante es para el cliente --}}
     </div>
   </div>
 
@@ -81,7 +85,7 @@
       {{ $order->delivery_method === 'retiro' ? ($order->channel === 'local' ? 'Venta en el local' : 'Retira en el local') : 'Envío a domicilio' }}
       @if ($order->address)<br>{{ $order->address }}{{ $order->city ? ', '.$order->city : '' }}@endif
       <br>Forma de pago: {{ $order->paymentLabel() }}
-      @if ($order->seller)<br><span class="small">Atendió: {{ $order->seller->name }}</span>@endif
+      @if ($order->seller && ! $forCustomer)<br><span class="small">Atendió: {{ $order->seller->name }}</span>@endif
     </div>
   </div>
 
@@ -113,7 +117,13 @@
 
   @if ($order->notes)<div class="notes card"><h3>Notas</h3>{{ $order->notes }}</div>@endif
 
+  @if ($order->payment_method === 'transferencia' && $order->payment_status !== 'pagado' && $order->status !== 'cancelado' && setting('bank_details'))
+    <div class="notes card"><h3>Datos para la transferencia</h3><div style="white-space:pre-line">{{ setting('bank_details') }}</div></div>
+  @endif
+
+  @unless ($forCustomer)
   <div class="sign"><div>Entregado por</div><div>Recibí conforme (firma y aclaración)</div></div>
+  @endunless
 
   <div class="foot">¡Gracias por tu compra! Cambios dentro de los 30 días presentando este comprobante.<br>Comprobante interno, no válido como factura.</div>
 </div>

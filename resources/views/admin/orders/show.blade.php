@@ -78,7 +78,7 @@
       </form>
     @endif
     @if (in_array($order->status, ['procesado', 'enviado', 'entregado']))
-      <form method="post" action="{{ route('admin.orders.finish', $order) }}" class="box process-box" style="display:grid;gap:12px" data-confirm="¿Confirmás que el pedido {{ $order->number }} se entregó y el pago está conforme?">
+      <form method="post" action="{{ route('admin.orders.finish', $order) }}" class="box process-box" style="display:grid;gap:12px" data-confirm="¿Confirmás que el pedido {{ $order->number }} se entregó y el pago está conforme?" data-ok="Sí, finalizar">
         @csrf
         <h2 style="margin:0">Finalizar pedido</h2>
         <p class="help">Cuando el cliente ya recibió el pedido y el pago está conforme, finalizalo. Pasa a la lista de <b>Finalizados</b>{{ $order->payment_status !== 'pagado' ? ' y el pago se marca como recibido' : '' }}.</p>

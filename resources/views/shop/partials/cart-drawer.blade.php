@@ -20,18 +20,18 @@
             <div class="qty">
               <button type="button" data-line-qty="{{ $l->qty - 1 }}" data-url="{{ route('cart.update', $l->variant) }}" aria-label="Uno menos"><svg class="i" style="width:16px"><use href="#i-minus"/></svg></button>
               <input value="{{ $l->qty }}" readonly aria-label="Cantidad">
-              <button type="button" data-line-qty="{{ $l->qty + 1 }}" data-url="{{ route('cart.update', $l->variant) }}" aria-label="Uno más" @disabled($l->qty >= $l->variant->stock)><svg class="i" style="width:16px"><use href="#i-plus"/></svg></button>
+              <button type="button" data-line-qty="{{ $l->qty + 1 }}" data-url="{{ route('cart.update', $l->variant) }}" aria-label="Uno más" @disabled($l->qty >= $l->available)><svg class="i" style="width:16px"><use href="#i-plus"/></svg></button>
             </div>
             <b>{{ money($l->total) }}</b>
           </div>
-          @if ($l->over_stock)<div class="warn">Solo quedan {{ $l->variant->stock }}. Ajustá la cantidad.</div>@endif
+          @if ($l->over_stock)<div class="warn">Solo quedan {{ $l->available }}. Ajustá la cantidad.</div>@endif
           <button type="button" class="rm" data-line-rm data-url="{{ route('cart.remove', $l->variant) }}" style="margin-top:8px">Quitar</button>
         </div>
       </div>
     @endforeach
   </div>
   <div class="foot">
-    @if ($free > 0)
+    @if ($free > 0 && show_free_shipping())
       <div class="ship-bar">
         @if ($subtotal >= $free)
           <b style="color:var(--ok)">¡Tenés envío gratis!</b>

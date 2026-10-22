@@ -1,8 +1,8 @@
 @extends('layouts.admin')
-@section('title', $customer->exists ? $customer->name : 'Nuevo cliente')
+@section('title', $customer->exists ? $customer->fullName() : 'Nuevo cliente')
 @section('actions')
   @if ($customer->exists)
-    <button type="button" class="btn sm ghost" data-delete="{{ route('admin.customers.destroy', $customer) }}" data-confirm="¿Eliminar a {{ $customer->name }}? Su cuenta se borra, pero sus pedidos se conservan.">Eliminar cliente</button>
+    <button type="button" class="btn sm ghost" data-delete="{{ route('admin.customers.destroy', $customer) }}" data-confirm="¿Eliminar a {{ $customer->fullName() }}? Su cuenta se borra, pero sus pedidos se conservan." data-ok="Sí, eliminar">Eliminar cliente</button>
   @endif
 @endsection
 @section('content')
@@ -36,12 +36,15 @@
     @csrf @if ($customer->exists) @method('PUT') @endif
     <h2 style="margin:0">Datos del cliente</h2>
     <div class="form-grid">
-      <div class="field full"><label>Nombre y apellido</label><input class="input" name="name" value="{{ old('name', $customer->name) }}" required></div>
-      <div class="field full"><label>Correo <span class="help">(para entrar a la tienda)</span></label><input class="input" type="email" name="email" value="{{ old('email', $customer->email) }}"></div>
+      <div class="field"><label>Nombre</label><input class="input" name="name" value="{{ old('name', $customer->name) }}" required></div>
+      <div class="field"><label>Apellido</label><input class="input" name="last_name" value="{{ old('last_name', $customer->last_name) }}"></div>
+      <div class="field"><label>Usuario <span class="help">(para entrar a la tienda)</span></label><input class="input" name="username" value="{{ old('username', $customer->username) }}" autocapitalize="none" spellcheck="false" placeholder="Ej.: lucia.benitez"></div>
+      <div class="field"><label>Correo <span class="help">(opcional)</span></label><input class="input" type="email" name="email" value="{{ old('email', $customer->email) }}"></div>
       <div class="field"><label>Celular</label><input class="input" name="phone" value="{{ old('phone', $customer->phone) }}" inputmode="tel"></div>
       <div class="field"><label>CI o RUC</label><input class="input" name="document" value="{{ old('document', $customer->document) }}"></div>
       <div class="field full"><label>Dirección</label><input class="input" name="address" value="{{ old('address', $customer->address) }}"></div>
       <div class="field"><label>Ciudad</label><input class="input" name="city" value="{{ old('city', $customer->city) }}"></div>
+      <div class="field"><label>País</label><select class="select input" name="country" style="border-radius:14px">@foreach (\App\Support\Accounts::COUNTRIES as $co)<option @selected(old('country', $customer->country ?? 'Paraguay') === $co)>{{ $co }}</option>@endforeach</select></div>
       <div class="field"><label>Límite por compra (Gs.)</label><input class="input" name="purchase_limit" inputmode="numeric" data-money value="{{ old('purchase_limit', $money($customer->purchase_limit)) }}" placeholder="Sin límite"></div>
     </div>
     <p class="help" style="margin-top:-6px">El límite es el monto máximo que puede tener un pedido de este cliente, en la tienda online y en Vender. Vacío = sin límite.</p>

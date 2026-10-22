@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Payments\PaymentManager;
+use App\Support\Accounts;
 use App\Support\Cart;
 use App\Support\OrderBuilder;
 use App\Support\Receipts;
@@ -19,14 +20,20 @@ class CheckoutController extends Controller
             return redirect()->route('cart');
         }
         $subtotal = Cart::subtotal($lines);
+        $user = auth()->user();
+        if (! $user) {
+            // Si elige «Ingresá», al entrar vuelve acá con su carrito
+            session(['url.intended' => route('checkout')]);
+        }
 
         return view('shop.checkout', [
             'lines' => $lines,
             'subtotal' => $subtotal,
             'shippingCost' => Cart::shippingFor($subtotal, 'envio'),
             'methods' => $payments->webMethods(),
-            'user' => auth()->user(),
-            'limit' => auth()->user()->purchase_limit,
+            'user' => $user,
+            'limit' => $user?->purchase_limit,
+            'countries' => Accounts::COUNTRIES,
         ]);
     }
 
@@ -34,29 +41,50 @@ class CheckoutController extends Controller
     {
         $available = array_keys(array_filter($payments->webMethods(), fn ($m) => $m['available']));
 
-        $data = $request->validate([
-            'customer_name' => 'required|string|max:120',
-            'customer_phone' => 'required|string|max:40',
-            'customer_document' => 'nullable|string|max:30',
+        $user = $request->user();
+        $orderRules = [
             'delivery_method' => 'required|in:envio,retiro',
-            'address' => 'required_if:delivery_method,envio|nullable|string|max:255',
-            'city' => 'required_if:delivery_method,envio|nullable|string|max:80',
             'notes' => 'nullable|string|max:500',
             'payment_method' => ['required', Rule::in($available)],
-            'save_data' => 'nullable|boolean',
             'receipt' => Receipts::RULE,
-        ], Receipts::MESSAGES + [
+        ];
+        $messages = Receipts::MESSAGES + [
             'address.required_if' => 'Poné la dirección de entrega.',
             'city.required_if' => 'Poné la ciudad.',
             'payment_method.in' => 'Ese medio de pago todavía no está disponible.',
-        ]);
+        ];
+
+        if ($user) {
+            $data = $request->validate($orderRules + [
+                'customer_name' => 'required|string|max:120',
+                'customer_phone' => 'required|string|max:40',
+                'customer_document' => 'nullable|string|max:30',
+                'address' => 'required_if:delivery_method,envio|nullable|string|max:255',
+                'city' => 'required_if:delivery_method,envio|nullable|string|max:80',
+                'save_data' => 'nullable|boolean',
+            ], $messages);
+        } else {
+            // Compra sin cuenta: con sus datos se crea la cuenta (el correo es opcional)
+            Accounts::normalize($request);
+            $account = $request->validate($orderRules + Accounts::rules(), $messages + Accounts::messages());
+            if (! Cart::raw()) {
+                return redirect()->route('cart');
+            }
+            $user = Accounts::register($request, $account);
+            $data = collect($account)->only(array_keys($orderRules))->all() + [
+                'customer_name' => $user->fullName(),
+                'customer_phone' => $user->phone,
+                'customer_document' => $user->document,
+                'address' => $user->address,
+                'city' => $user->city,
+            ];
+        }
 
         $items = Cart::raw();
         if (! $items) {
             return redirect()->route('cart');
         }
         $subtotal = Cart::subtotal();
-        $user = $request->user();
 
         $order = OrderBuilder::create($items, [
             'user_id' => $user->id,
@@ -64,7 +92,7 @@ class CheckoutController extends Controller
             'status' => 'pendiente',
             'payment_status' => 'pendiente',
             'customer_email' => $user->email,
-        ] + collect($data)->except(['save_data', 'receipt'])->all(), Cart::shippingFor($subtotal, $data['delivery_method']), 0, [
+        ] + collect($data)->only(['customer_name', 'customer_phone', 'customer_document', 'delivery_method', 'address', 'city', 'notes', 'payment_method'])->all(), Cart::shippingFor($subtotal, $data['delivery_method']), 0, [
             // El stock se descuenta cuando el pedido se procesa desde el panel
             'applyStock' => false,
             'customer' => $user,
@@ -94,5 +122,13 @@ class CheckoutController extends Controller
         abort_unless($order->user_id === auth()->id(), 404);
 
         return view('shop.thanks', ['order' => $order->load('items')]);
+    }
+
+    /** Boleta del pedido para imprimir o guardar como PDF */
+    public function invoice(Order $order)
+    {
+        abort_unless($order->user_id === auth()->id(), 404);
+
+        return view('admin.orders.print', ['order' => $order->load(['items', 'user']), 'forCustomer' => true]);
     }
 }

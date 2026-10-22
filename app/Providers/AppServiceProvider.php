@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.shop', function ($view) {
             $view->with([
-                'navCategories' => Category::active()->get(),
+                'navCategories' => Category::active()->roots()->with(['children' => fn ($q) => $q->where('is_active', true)])->get(),
                 'cartCount' => Cart::count(),
             ]);
         });

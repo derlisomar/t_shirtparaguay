@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Support\Accounts;
 use App\Support\Receipts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -51,14 +52,9 @@ class AccountController extends Controller
 
     public function update(Request $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:120',
-            'phone' => 'nullable|string|max:40',
-            'document' => 'nullable|string|max:30',
-            'city' => 'nullable|string|max:80',
-            'address' => 'nullable|string|max:255',
-        ]);
-        $request->user()->update($data);
+        Accounts::normalize($request);
+        $data = $request->validate(Accounts::rules($request->user(), false), Accounts::messages());
+        $request->user()->update(Accounts::attributes($data));
 
         return back()->with('ok', 'Tus datos se guardaron.');
     }
@@ -67,8 +63,8 @@ class AccountController extends Controller
     {
         $request->validate([
             'current_password' => 'required',
-            'password' => ['required', 'confirmed', Password::min(8)],
-        ], ['password.confirmed' => 'Las contraseñas nuevas no coinciden.']);
+            'password' => ['required', 'confirmed', Password::min(6)],
+        ], ['password.confirmed' => 'Las contraseñas nuevas no coinciden.', 'password.min' => 'La contraseña tiene que tener al menos 6 caracteres.']);
 
         if (! Hash::check($request->input('current_password'), $request->user()->password)) {
             return back()->withErrors(['current_password' => 'La contraseña actual no es correcta.']);

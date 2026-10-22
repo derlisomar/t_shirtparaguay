@@ -23,6 +23,14 @@ if (! function_exists('setting')) {
     }
 }
 
+if (! function_exists('show_free_shipping')) {
+    /** ¿Se muestran los avisos de envío gratis? (Configuración › Envíos) */
+    function show_free_shipping(): bool
+    {
+        return setting('show_free_shipping', '1') !== '0' && (int) setting('free_shipping_from', 400000) > 0;
+    }
+}
+
 if (! function_exists('upload_url')) {
     /** URL pública de un archivo subido (carpeta public/uploads). */
     function upload_url(?string $path): ?string

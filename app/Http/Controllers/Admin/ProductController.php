@@ -20,8 +20,8 @@ class ProductController extends Controller
         if ($t = $request->input('q')) {
             $q->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('sku', 'ilike', "%$t%"));
         }
-        if ($c = $request->input('categoria')) {
-            $q->where('category_id', $c);
+        if ($c = \App\Models\Category::find($request->input('categoria'))) {
+            $q->whereIn('category_id', $c->familyIds(false)); // incluye sus líneas
         }
         if ($request->input('estado') === 'ocultos') {
             $q->where('is_active', false);
@@ -31,7 +31,7 @@ class ProductController extends Controller
 
         return view('admin.products.index', [
             'products' => $q->paginate(20)->withQueryString(),
-            'categories' => Category::orderBy('name')->get(),
+            'categories' => Category::tree(),
         ]);
     }
 
@@ -49,7 +49,7 @@ class ProductController extends Controller
     {
         return view('admin.products.form', [
             'product' => $product,
-            'categories' => Category::orderBy('sort_order')->get(),
+            'categories' => Category::tree(),
             'sizes' => Size::orderBy('sort_order')->get(),
             'colors' => Color::orderBy('sort_order')->get(),
         ]);
@@ -77,8 +77,8 @@ class ProductController extends Controller
             'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string|max:5000',
             'sku' => 'nullable|string|max:60',
-            'price' => 'required',
-            'compare_price' => 'nullable',
+            'unit_price' => 'required',
+            'offer_price' => 'nullable',
             'wholesale_price' => 'nullable',
             'wholesale_min_qty' => 'nullable|integer|min:0|max:100000',
             'slug' => 'nullable|alpha_dash|max:180|unique:products,slug,'.($product->id ?? 'NULL'),
@@ -95,11 +95,23 @@ class ProductController extends Controller
             'photos.*.max' => 'Cada foto puede pesar hasta 6 MB.',
         ]);
 
-        $price = (int) preg_replace('/\D/', '', (string) $data['price']);
-        $compare = (int) preg_replace('/\D/', '', (string) ($data['compare_price'] ?? ''));
+        // Tres precios: por unidad, de oferta (opcional) y mayorista (opcional).
+        // Con oferta, «price» es lo que paga el cliente y «compare_price» el precio por unidad tachado.
+        $unit = (int) preg_replace('/\D/', '', (string) $data['unit_price']);
+        $offer = (int) preg_replace('/\D/', '', (string) ($data['offer_price'] ?? ''));
         $wholesale = (int) preg_replace('/\D/', '', (string) ($data['wholesale_price'] ?? ''));
+        if ($unit <= 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['unit_price' => 'Poné el precio por unidad.']);
+        }
+        if ($offer > 0 && $offer >= $unit) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['offer_price' => 'El precio de oferta tiene que ser menor que el precio por unidad.']);
+        }
+        $price = $offer > 0 ? $offer : $unit;
+        $compare = $offer > 0 ? $unit : 0;
         if ($wholesale > 0 && $wholesale >= $price) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['wholesale_price' => 'El precio mayorista tiene que ser menor que el precio normal.']);
+            throw \Illuminate\Validation\ValidationException::withMessages(['wholesale_price' => $offer > 0
+                ? 'El precio mayorista tiene que ser menor que el precio de oferta.'
+                : 'El precio mayorista tiene que ser menor que el precio por unidad.']);
         }
 
         DB::transaction(function () use ($request, $product, $data, $price, $compare, $wholesale) {

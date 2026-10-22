@@ -6,6 +6,34 @@
   const S = window.SHOP || {};
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Ventanas de confirmación y avisos con SweetAlert2 (en lugar de los del navegador)
+  const swalBase = {
+    customClass: { popup: 'sa-popup', confirmButton: 'btn', cancelButton: 'btn soft', actions: 'sa-actions' },
+    buttonsStyling: false,
+    reverseButtons: true,
+    showClass: { popup: reduce ? '' : 'swal2-show' },
+  };
+  // ask('¿Borrar?', { danger: true, ok: 'Borrar' }) → Promise<boolean>
+  window.ask = (text, o = {}) => {
+    if (!window.Swal) return Promise.resolve(window.confirm(text));
+    return Swal.fire({
+      ...swalBase,
+      icon: o.danger ? 'warning' : 'question',
+      title: o.title || text,
+      text: o.title ? text : undefined,
+      showCancelButton: true,
+      confirmButtonText: o.ok || 'Sí, seguir',
+      cancelButtonText: o.cancel || 'Cancelar',
+      customClass: { ...swalBase.customClass, confirmButton: o.danger ? 'btn danger' : 'btn accent' },
+      focusCancel: !!o.danger,
+    }).then(r => r.isConfirmed);
+  };
+  // notice('Texto', 'error' | 'success' | 'info' | 'warning')
+  window.notice = (text, icon = 'info', title) => {
+    if (!window.Swal) { window.alert(text); return Promise.resolve(); }
+    return Swal.fire({ ...swalBase, icon, title: title || text, text: title ? text : undefined, confirmButtonText: 'Entendido', customClass: { ...swalBase.customClass, confirmButton: 'btn accent' } });
+  };
+
   async function api(url, opts = {}) {
     const res = await fetch(url, {
       credentials: 'same-origin',
@@ -182,9 +210,9 @@
     $$('[data-next]', slider).forEach(b => b.addEventListener('click', () => go(cur + 1)));
     $$('[data-prev]', slider).forEach(b => b.addEventListener('click', () => go(cur - 1)));
     dots.forEach(d => d.addEventListener('click', () => go(+d.dataset.go)));
-    slider.addEventListener('mouseenter', () => pause(true));
-    slider.addEventListener('mouseleave', () => pause(false));
-    slider.addEventListener('focusin', () => pause(true));
+    // No se pausa con el mouse encima (el slider ocupa casi toda la pantalla y parecía trabado);
+    // solo al usar el teclado adentro o con la pestaña oculta.
+    slider.addEventListener('focusin', e => { if (e.target.matches(':focus-visible')) pause(true); });
     slider.addEventListener('focusout', () => pause(false));
     slider.addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(cur + 1); if (e.key === 'ArrowLeft') go(cur - 1); });
     document.addEventListener('visibilitychange', () => pause(document.hidden));
@@ -263,7 +291,8 @@
       if (!size) { hint.textContent = 'Elegí tu talle.'; hint.className = 'stock-hint'; }
       else if (!v || v.stock <= 0) { hint.textContent = 'Este talle está agotado en este color. Consultanos por WhatsApp si vuelve.'; hint.className = 'stock-hint low'; }
       else if (v.stock <= 3) { hint.textContent = `¡Quedan solo ${v.stock}!`; hint.className = 'stock-hint low'; }
-      else { hint.textContent = 'Hay stock. Sale en 24 a 48 h hábiles.'; hint.className = 'stock-hint'; }
+      else { hint.textContent = `Hay ${v.stock} disponibles. Sale en 24 a 48 h hábiles.`; hint.className = 'stock-hint'; }
+      $$('[data-pick-size]', pdp).forEach(c => c.classList.toggle('on', +c.dataset.pickSize === size && (c.dataset.pickColor === '' ? color === null : +c.dataset.pickColor === color)));
       const ok = v && v.stock > 0;
       $$('[data-add]').forEach(b => { b.disabled = !ok && !!size; });
       if (qtyIn && v) { qtyIn.max = Math.max(1, v.stock); if (+qtyIn.value > v.stock) qtyIn.value = Math.max(1, v.stock); }
@@ -282,6 +311,13 @@
     }
     colorBtns.forEach(b => b.addEventListener('click', () => { color = +b.dataset.color; const i = refresh(); if (i >= 0) show(i); }));
     sizeBtns.forEach(b => b.addEventListener('click', () => { size = +b.dataset.size; refresh(); }));
+    // Tabla de disponibles: tocar una celda elige ese talle y color
+    $$('[data-pick-size]', pdp).forEach(c => c.addEventListener('click', () => {
+      size = +c.dataset.pickSize;
+      const prev = color;
+      if (c.dataset.pickColor !== '') color = +c.dataset.pickColor;
+      const i = refresh(); if (i >= 0 && color !== prev) show(i);
+    }));
     $$('[data-step]', pdp).forEach(b => b.addEventListener('click', () => {
       qtyIn.value = Math.min(+qtyIn.max || 50, Math.max(1, (+qtyIn.value || 1) + +b.dataset.step));
     }));
@@ -336,7 +372,12 @@
   const rb = $('[data-receipt-box]');
   if (rb) {
     const pm = $$('input[name=payment_method]');
-    const updPm = () => { rb.hidden = pm.length > 0 && $('input[name=payment_method]:checked')?.value !== 'transferencia'; };
+    const bank = $('[data-bank-box]');
+    const updPm = () => {
+      const isTransfer = !(pm.length > 0 && $('input[name=payment_method]:checked')?.value !== 'transferencia');
+      rb.hidden = !isTransfer;
+      if (bank) bank.hidden = !isTransfer;
+    };
     pm.forEach(r => r.addEventListener('change', updPm)); updPm();
   }
   $$('[data-file-drop]').forEach(drop => {
@@ -345,7 +386,7 @@
       const f = input.files[0];
       drop.classList.toggle('has', !!f);
       title.textContent = f ? '✓ ' + f.name : def;
-      if (f && f.size > 5 * 1024 * 1024) { alert('El comprobante puede pesar hasta 5 MB.'); input.value = ''; drop.classList.remove('has'); title.textContent = def; }
+      if (f && f.size > 5 * 1024 * 1024) { notice('Elegí un archivo más liviano: el comprobante puede pesar hasta 5 MB.', 'warning', 'El archivo es muy grande'); input.value = ''; drop.classList.remove('has'); title.textContent = def; }
     });
   });
 })();

@@ -3,7 +3,7 @@
 @section('content')
 @if ($slides->count())
 <div class="hero">
-  <div class="slider" id="slider" data-interval="6500" style="--bg-slide: {{ $slides[0]->bg_color }}; --acc: {{ $slides[0]->accent_color }}" aria-roledescription="carrusel" aria-label="Destacados">
+  <div class="slider" id="slider" data-interval="{{ max(2, min(20, (int) setting('slider_seconds', 4))) * 1000 }}" style="--bg-slide: {{ $slides[0]->bg_color }}; --acc: {{ $slides[0]->accent_color }}" aria-roledescription="carrusel" aria-label="Destacados">
     @foreach ($slides as $i => $s)
       @php($p = $s->product)
       <div class="slide {{ $i === 0 ? 'on' : '' }}" data-bg="{{ $s->bg_color }}" data-acc="{{ $s->accent_color }}" data-tagline="{{ $s->tagline }}" data-thumb="{{ upload_url($s->thumb_image ?: $s->main_image) }}" aria-roledescription="diapositiva" aria-label="{{ $i + 1 }} de {{ $slides->count() }}" @if($i) aria-hidden="true" @endif>
@@ -26,7 +26,7 @@
               <div class="sizes-label">Elegí tu talle:</div>
               <div class="sizes">
                 @foreach ($sz as $size)
-                  @php($has = $p->variants->where('size_id', $size->id)->sum('stock') > 0)
+                  @php($has = $p->variants->where('size_id', $size->id)->sum(fn ($v) => $v->available()) > 0)
                   <a href="{{ route('product.show', [$p, 'talle' => $size->id]) }}" class="{{ $has ? '' : 'out' }}" @if($i) tabindex="-1" @endif>{{ $size->name }}</a>
                 @endforeach
               </div>
@@ -65,10 +65,10 @@
     </div>
     <div class="cats">
       @foreach ($categories->take(5) as $c)
-        @php($cover = $c->image ? upload_url($c->image) : optional(\App\Models\ProductImage::whereHas('product', fn($q) => $q->where('category_id', $c->id)->where('is_active', true))->orderBy('product_id')->orderBy('sort_order')->first())->url)
+        @php($cover = $c->image ? upload_url($c->image) : optional(\App\Models\ProductImage::whereHas('product', fn($q) => $q->whereIn('category_id', $c->familyIds())->where('is_active', true))->orderBy('product_id')->orderBy('sort_order')->first())->url)
         <a class="cat" href="{{ route('category', $c) }}">
           @if ($cover)<img src="{{ $cover }}" alt="" loading="lazy">@endif
-          <div><h3>{{ $c->name }}</h3><span>{{ $c->products_count }} {{ $c->products_count === 1 ? 'producto' : 'productos' }}</span></div>
+          <div><h3>{{ $c->name }}</h3>@php($n = \App\Models\Product::active()->whereIn('category_id', $c->familyIds())->count())<span>{{ $n }} {{ $n === 1 ? 'producto' : 'productos' }}</span></div>
           <span class="go" aria-hidden="true"><svg class="i"><use href="#i-arrow"/></svg></span>
         </a>
       @endforeach
@@ -112,7 +112,7 @@
 
   <section class="block">
     <div class="perks">
-      <div class="perk"><svg class="i"><use href="#i-truck"/></svg><div><b>Envíos a todo el país</b><span>Gratis desde {{ money(setting('free_shipping_from', 400000)) }} en Asunción y Central.</span></div></div>
+      <div class="perk"><svg class="i"><use href="#i-truck"/></svg><div><b>Envíos a todo el país</b><span>{{ show_free_shipping() ? 'Gratis desde '.money(setting('free_shipping_from', 400000)).' en Asunción y Central.' : 'En 24 a 48 h hábiles en Asunción y Central.' }}</span></div></div>
       <div class="perk"><svg class="i"><use href="#i-swap"/></svg><div><b>Cambios sin vueltas</b><span>Tenés 30 días para cambiar de talle o color.</span></div></div>
       <div class="perk"><svg class="i"><use href="#i-card"/></svg><div><b>Pagá como quieras</b><span>Transferencia o efectivo. Muy pronto, con tarjeta.</span></div></div>
       <div class="perk"><svg class="i"><use href="#i-chat"/></svg><div><b>Te ayudamos por WhatsApp</b><span>Consultá talles y stock antes de comprar.</span></div></div>

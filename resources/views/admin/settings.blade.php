@@ -10,6 +10,7 @@
         <div class="form-grid">
           <div class="field"><label>Nombre de la tienda</label><input class="input" name="store_name" value="{{ $s['store_name'] ?? '' }}" required></div>
           <div class="field"><label>Frase corta</label><input class="input" name="store_tagline" value="{{ $s['store_tagline'] ?? '' }}"></div>
+          <div class="field"><label>Velocidad del slider <span class="help">(segundos que se ve cada slide)</span></label><input class="input" type="number" min="2" max="20" name="slider_seconds" value="{{ $s['slider_seconds'] ?? 4 }}"></div>
           <div class="field full"><label>Barra de anuncio <span class="help">(arriba de todo; vacío = no se muestra)</span></label><input class="input" name="announcement" value="{{ $s['announcement'] ?? '' }}"></div>
           @foreach (['logo' => 'Logo (modo claro)', 'logo_dark' => 'Logo para modo oscuro (opcional)', 'favicon' => 'Ícono de la pestaña (PNG cuadrado)'] as $f => $label)
             <div class="field {{ $f === 'favicon' ? 'full' : '' }}"><label>{{ $label }}</label>
@@ -25,6 +26,7 @@
         <div class="form-grid">
           <div class="field"><label>Costo de envío (Gs.)</label><input class="input" name="shipping_cost" data-money value="{{ number_format((int) ($s['shipping_cost'] ?? 0), 0, ',', '.') }}"></div>
           <div class="field"><label>Envío gratis desde (Gs.) <span class="help">0 = nunca</span></label><input class="input" name="free_shipping_from" data-money value="{{ number_format((int) ($s['free_shipping_from'] ?? 0), 0, ',', '.') }}"></div>
+          <label class="switch full">Mostrar avisos de envío gratis en la tienda <span class="help">(barra «te faltan Gs. X» del carrito y «envío gratis desde» en los productos)</span><input type="checkbox" name="show_free_shipping" value="1" @checked(($s['show_free_shipping'] ?? '1') !== '0')></label>
           <div class="field full"><label>Dirección para retirar</label><input class="input" name="pickup_address" value="{{ $s['pickup_address'] ?? '' }}"></div>
         </div>
       </div>

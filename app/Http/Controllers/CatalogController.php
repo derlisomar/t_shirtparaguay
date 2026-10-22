@@ -14,9 +14,13 @@ class CatalogController extends Controller
     {
         $q = Product::active()->with(['images', 'variants.color', 'variants.size']);
 
+        $lines = collect();
         if ($category) {
-            abort_unless($category->is_active, 404);
-            $q->where('category_id', $category->id);
+            abort_unless($category->is_active && (! $category->parent || $category->parent->is_active), 404);
+            // Una categoría principal muestra también los productos de sus líneas
+            $q->whereIn('category_id', $category->familyIds());
+            $root = $category->parent ?? $category;
+            $lines = $root->children()->where('is_active', true)->get();
         }
         if ($term = trim((string) $request->input('q'))) {
             $q->where(function ($w) use ($term) {
@@ -53,12 +57,25 @@ class CatalogController extends Controller
             default => $q->latest('id'),
         };
 
-        $products = $q->paginate(12)->withQueryString();
+        // En una categoría con líneas y sin filtros, los productos se muestran agrupados por línea
+        $groups = null;
+        $filtered = $request->hasAny(['q', 'talle', 'color', 'min', 'max', 'oferta', 'orden', 'page']);
+        if ($category && ! $category->parent_id && $lines->isNotEmpty() && ! $filtered) {
+            $all = $q->get();
+            $groups = $lines->map(fn ($l) => (object) ['category' => $l, 'products' => $all->where('category_id', $l->id)->values()])
+                ->push((object) ['category' => null, 'products' => $all->where('category_id', $category->id)->values()])
+                ->filter(fn ($g) => $g->products->isNotEmpty())->values();
+            $products = new \Illuminate\Pagination\LengthAwarePaginator($all, $all->count(), max(1, $all->count()));
+        } else {
+            $products = $q->paginate(12)->withQueryString();
+        }
 
         return view('shop.catalog', [
             'products' => $products,
             'category' => $category,
-            'categories' => Category::active()->get(),
+            'categories' => Category::active()->roots()->get(),
+            'lines' => $lines,
+            'groups' => $groups,
             'allSizes' => Size::orderBy('sort_order')->get(),
             'allColors' => Color::orderBy('sort_order')->get(),
             'selSizes' => array_map('intval', $sizes),
@@ -69,7 +86,7 @@ class CatalogController extends Controller
     public function show(Product $product)
     {
         abort_unless($product->is_active, 404);
-        $product->load(['images', 'variants.size', 'variants.color', 'category']);
+        $product->load(['images', 'variants.size', 'variants.color', 'category.parent']);
 
         $related = Product::active()->with(['images', 'variants.color'])
             ->where('id', '!=', $product->id)
@@ -78,7 +95,7 @@ class CatalogController extends Controller
 
         // Datos para el selector de talle/color en JavaScript
         $variants = $product->variants->map(fn ($v) => [
-            'id' => $v->id, 'size' => $v->size_id, 'color' => $v->color_id, 'stock' => $v->stock,
+            'id' => $v->id, 'size' => $v->size_id, 'color' => $v->color_id, 'stock' => $v->available(),
         ])->values();
 
         $isFavorite = auth()->check() && auth()->user()->favorites()->whereKey($product->id)->exists();

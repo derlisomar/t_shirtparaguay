@@ -7,7 +7,13 @@
   const fmt = n => (+n || 0).toLocaleString('es-PY').replace(/,/g, '.');
   const num = s => +String(s || '').replace(/\D/g, '') || 0;
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const toast = (m, e) => window.toast ? window.toast(m, e) : alert(m);
+  // Avisos cortos abajo de la pantalla (en vez de las ventanas del navegador)
+  let toastEl = null, toastT = null;
+  const toast = (m, e) => {
+    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+    toastEl.textContent = m; toastEl.classList.toggle('err', !!e); toastEl.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 3200);
+  };
 
   // Montos con separador de miles mientras se escribe
   $$('[data-money]').forEach(i => i.addEventListener('input', () => {
@@ -18,15 +24,29 @@
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-delete]'); if (!b) return;
     e.preventDefault();
-    if (b.dataset.confirm && !confirm(b.dataset.confirm)) return;
-    const f = document.createElement('form');
-    f.method = 'post'; f.action = b.dataset.delete;
-    f.innerHTML = `<input type="hidden" name="_token" value="${csrf}"><input type="hidden" name="_method" value="DELETE">`;
-    document.body.appendChild(f); f.submit();
+    const go = () => {
+      const f = document.createElement('form');
+      f.method = 'post'; f.action = b.dataset.delete;
+      f.innerHTML = `<input type="hidden" name="_token" value="${csrf}"><input type="hidden" name="_method" value="DELETE">`;
+      document.body.appendChild(f); f.submit();
+    };
+    if (!b.dataset.confirm) return go();
+    ask(b.dataset.confirm, { danger: true, ok: b.dataset.ok || 'Sí, borrar' }).then(ok => ok && go());
   });
 
   // Formularios que piden confirmación antes de enviarse
-  $$('form[data-confirm]').forEach(f => f.addEventListener('submit', e => { if (!confirm(f.dataset.confirm)) e.preventDefault(); }));
+  // (al aceptar se vuelve a enviar con el mismo botón; la marca evita preguntar dos veces)
+  const confirmSubmit = (f, e, text, o) => {
+    if (f.dataset.confirmed) { delete f.dataset.confirmed; return; }
+    e.preventDefault();
+    const btn = e.submitter;
+    ask(text, o).then(ok => {
+      if (!ok) return;
+      f.dataset.confirmed = '1';
+      f.requestSubmit ? f.requestSubmit(btn || undefined) : f.submit();
+    });
+  };
+  $$('form[data-confirm]').forEach(f => f.addEventListener('submit', e => confirmSubmit(f, e, f.dataset.confirm, { ok: f.dataset.ok || 'Sí, confirmar' })));
 
   // ---------- Pedido: ajustar cantidades o quitar prendas ----------
   const itemsForm = $('[data-items-form]');
@@ -59,7 +79,7 @@
     $('[data-items-reset]', itemsForm).addEventListener('click', () => { inputs.forEach(i => { i.value = i.dataset.orig; }); upd(); });
     itemsForm.addEventListener('submit', e => {
       const removed = inputs.filter(i => (parseInt(i.value, 10) || 0) === 0 && +i.dataset.orig > 0).length;
-      if (removed && !confirm(`Vas a quitar ${removed === 1 ? 'una prenda' : removed + ' prendas'} del pedido. ¿Seguimos?`)) e.preventDefault();
+      if (removed) confirmSubmit(itemsForm, e, `Vas a quitar ${removed === 1 ? 'una prenda' : removed + ' prendas'} del pedido.`, { title: '¿Quitar prendas del pedido?', danger: true, ok: 'Sí, quitar' });
     });
   }
 
@@ -86,14 +106,19 @@
           const v = stock[s.id]?.[c.id];
           h += `<td><input type="number" min="0" name="stock[${s.id}][${c.id}]" data-s="${s.id}" data-c="${c.id}" value="${v ?? ''}" placeholder="—" aria-label="${esc(s.name)} ${esc(c.name)}"></td>`;
         });
-        h += `<td><button type="button" class="btn sm soft" style="height:34px" data-fill="${c.id}" title="Poner la misma cantidad en todos los talles">Llenar</button></td></tr>`;
+        h += `<td><div class="fill-row"><input type="number" min="0" data-fill-qty="${c.id}" placeholder="Cant." title="Cantidad para todos los talles" aria-label="Cantidad para todos los talles de ${esc(c.name)}"><button type="button" class="btn sm soft" data-fill="${c.id}" title="Poner esa cantidad en todos los talles">Llenar</button></div></td></tr>`;
       });
       grid.innerHTML = h + '</table>';
     }
     grid.addEventListener('click', e => {
       const b = e.target.closest('[data-fill]'); if (!b) return;
-      const q = prompt('¿Cuántas unidades en cada talle?', '5'); if (q === null) return;
-      $$(`input[data-c="${b.dataset.fill}"]`, grid).forEach(i => i.value = Math.max(0, parseInt(q) || 0));
+      // Pone en todos los talles de ese color la cantidad escrita al lado (sin ventanas del navegador)
+      const box = $(`[data-fill-qty="${b.dataset.fill}"]`, grid);
+      if (box.value === '') { box.focus(); return; }
+      $$(`input[data-c="${b.dataset.fill}"]`, grid).forEach(i => i.value = Math.max(0, parseInt(box.value) || 0));
+    });
+    grid.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.target.matches('[data-fill-qty]')) { e.preventDefault(); $(`[data-fill="${e.target.dataset.fillQty}"]`, grid).click(); }
     });
     // Si el producto no tiene variantes, la grilla se llena con stock 0 al elegir talles/colores nuevos
     $$('input', sizesBox).concat($$('input', colorsBox)).forEach(i => i.addEventListener('change', draw));
@@ -161,21 +186,48 @@
   if (pos) {
     const cur = pos.dataset.currency;
     const money = n => cur + ' ' + fmt(n);
-    let products = [], cart = [], cat = '', customer = null;
-    const gridEl = $('[data-pos-grid]'), linesEl = $('[data-pos-lines]');
+    let products = [], cart = [], cat = '', customer = null, page = 1, req = 0;
+    const gridEl = $('[data-pos-grid]'), linesEl = $('[data-pos-lines]'), pagerEl = $('[data-pos-pager]'), countEl = $('[data-pos-count]');
 
-    async function load() {
-      const q = $('[data-pos-q]').value.trim();
-      const r = await fetch(`${pos.dataset.search}?q=${encodeURIComponent(q)}&categoria=${cat}`, { headers: { Accept: 'application/json' } });
-      products = await r.json();
+    async function load(p = 1) {
+      const q = $('[data-pos-q]').value.trim(), mine = ++req;
+      const r = await fetch(`${pos.dataset.search}?q=${encodeURIComponent(q)}&categoria=${cat}&page=${p}`, { headers: { Accept: 'application/json' } });
+      const res = await r.json();
+      if (mine !== req) return; // llegó una búsqueda más nueva
+      products = res.data; page = res.page;
+      countEl.textContent = res.total ? (res.last_page > 1 ? `${res.from}–${res.to} de ${res.total} prendas` : `${res.total} ${res.total === 1 ? 'prenda' : 'prendas'}`) : '';
+      pagerEl.innerHTML = pager(res.page, res.last_page);
       gridEl.innerHTML = products.length ? products.map((p, i) => {
         const st = p.variants.reduce((a, v) => a + v.stock, 0);
-        return `<button type="button" class="pos-item" data-i="${i}" ${st ? '' : 'style="opacity:.5"'}><img src="${p.image}" alt="" loading="lazy"><b>${esc(p.name)}</b><span>${p.price_text} · ${st} en stock</span>${p.wholesale_price ? `<span>May. ${money(p.wholesale_price)}${p.wholesale_min ? ' desde ' + p.wholesale_min : ''}</span>` : ''}</button>`;
+        return `<button type="button" class="pos-item${st ? '' : ' out'}" data-i="${i}"><img src="${p.image}" alt="" loading="lazy"><span class="pi"><b>${esc(p.name)}</b><span>${p.price_text} · ${st ? st + ' en stock' : 'Agotado'}</span>${p.wholesale_price ? `<span>May. ${money(p.wholesale_price)}${p.wholesale_min ? ' desde ' + p.wholesale_min : ''}</span>` : ''}</span></button>`;
       }).join('') : '<p class="help">No hay prendas con ese nombre.</p>';
     }
-    let qt; $('[data-pos-q]').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(load, 200); });
+    // Paginador: anterior, páginas cercanas y siguiente
+    function pager(cur, last) {
+      if (last <= 1) return '';
+      const nums = [...new Set([1, cur - 1, cur, cur + 1, last])].filter(n => n >= 1 && n <= last).sort((a, b) => a - b);
+      let h = cur > 1 ? `<button type="button" data-page="${cur - 1}" aria-label="Anterior">‹</button>` : '<span class="off">‹</span>';
+      nums.forEach((n, i) => {
+        if (i && n - nums[i - 1] > 1) h += '<span class="off">…</span>';
+        h += n === cur ? `<span class="on" aria-current="page">${n}</span>` : `<button type="button" data-page="${n}">${n}</button>`;
+      });
+      return h + (cur < last ? `<button type="button" data-page="${cur + 1}" aria-label="Siguiente">›</button>` : '<span class="off">›</span>');
+    }
+    // Ver como cuadrícula o como lista (se recuerda en este navegador)
+    const setView = v => {
+      gridEl.classList.toggle('list', v === 'lista');
+      $$('[data-pos-view]').forEach(b => b.classList.toggle('on', b.dataset.posView === v));
+      try { localStorage.setItem('pos-view', v); } catch (e) {}
+    };
+    $$('[data-pos-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.posView)));
+    try { setView(localStorage.getItem('pos-view') || 'grilla'); } catch (e) { setView('grilla'); }
+    pagerEl.addEventListener('click', e => {
+      const b = e.target.closest('[data-page]'); if (!b) return;
+      load(+b.dataset.page).then(() => $('[data-pos-q]').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    });
+    let qt; $('[data-pos-q]').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => load(1), 200); });
     $$('[data-pos-cat]').forEach(b => b.addEventListener('click', () => {
-      $$('[data-pos-cat]').forEach(x => x.classList.toggle('on', x === b)); cat = b.dataset.posCat; load();
+      $$('[data-pos-cat]').forEach(x => x.classList.toggle('on', x === b)); cat = b.dataset.posCat; load(1);
     }));
 
     const modal = $('#pos-variant');
@@ -252,7 +304,10 @@
     $$('[data-pos-discount], [data-pos-cash]').forEach(i => i.addEventListener('input', render));
     $$('input[name=pos_pay]').forEach(i => i.addEventListener('change', render));
     $('[data-pos-wholesale]').addEventListener('change', render);
-    $('[data-pos-clear]').addEventListener('click', () => { if (!cart.length || confirm('¿Vaciar la venta?')) { cart = []; render(); } });
+    $('[data-pos-clear]').addEventListener('click', async () => {
+      if (cart.length && !(await ask('Se quitan todas las prendas de la venta actual.', { title: '¿Vaciar la venta?', danger: true, ok: 'Sí, vaciar' }))) return;
+      cart = []; render();
+    });
 
     // Cliente
     const ci = $('[data-pos-customer]'), cr = $('[data-pos-cust-res]');
@@ -298,7 +353,7 @@
         openModal($('#pos-done'));
         cart = []; customer = null; ci.value = ''; $('[data-pos-phone]').value = ''; $('[data-pos-doc]').value = '';
         $('[data-pos-discount]').value = ''; $('[data-pos-cash]').value = ''; $('[data-pos-wholesale]').checked = false;
-        render(); load();
+        render(); load(page);
       } catch (err) { toast(err.message, true); btn.disabled = false; }
     });
     $('#pos-done').addEventListener('click', e => { if (e.target.closest('[data-close]')) closeModal($('#pos-done')); });

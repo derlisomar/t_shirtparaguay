@@ -44,14 +44,18 @@ El panel está en **http://localhost:8000/admin**
 
 Las actualizaciones mantienen tus productos, clientes y pedidos.
 
-1. Copiá los archivos de `tshirtparaguay-actualizacion-4.zip` **encima** de tu carpeta de la tienda (aceptá **reemplazar**). Ese zip no trae el `.env`, así que tu contraseña queda igual.
+> **Actualización 6 (Reportes):** si ya tenías la actualización 5, solo copiá `tshirtparaguay-actualizacion-6.zip` encima de la carpeta de la tienda y aceptá reemplazar. No hace falta tocar la base. Vas a ver **Reportes** en el menú del panel. Si venís de una versión más vieja, primero hacé los pasos de abajo con la actualización 5.
+
+1. Copiá los archivos de `tshirtparaguay-actualizacion-5.zip` **encima** de tu carpeta de la tienda (aceptá **reemplazar**). Ese zip no trae el `.env`, así que tu contraseña queda igual.
 2. Actualizá la base con **una** de estas dos formas:
    - **Lo más fácil:** doble clic en **`ACTUALIZAR-TIENDA.bat`**. Detecta solo qué le falta a tu base y lo aplica.
    - **Con pgAdmin:** clic derecho en la base `tshirtparaguay` → **Query Tool** → ejecutá (F5) cada archivo que te falte, **en orden y una sola vez**:
      - `base-de-datos/actualizacion-2.sql` (comprobante, stock al procesar, gráficos y mayorista). Si ya lo corriste, salteálo.
      - `base-de-datos/actualizacion-3.sql` (clientes desde el panel, límite de compra y pedidos finalizados). Si ya lo corriste, salteálo.
-     - `base-de-datos/actualizacion-4.sql` (cambiar cantidades o quitar prendas de un pedido).
+     - `base-de-datos/actualizacion-4.sql` (cambiar cantidades o quitar prendas de un pedido). Si ya lo corriste, salteálo.
+     - `base-de-datos/actualizacion-5.sql` (líneas dentro de las categorías y cuentas con nombre de usuario).
 3. Listo. Lo que ya estaba entregado y pagado aparece en **Pedidos → Finalizados**.
+4. Para armar las líneas (por ejemplo, las 4 calidades de remeras): **Categorías → + Línea** al lado de Remeras, y después en cada producto elegí su línea en «Categoría». Los clientes que ya tenían cuenta siguen entrando con su correo.
 
 ## Para usarla otro día
 

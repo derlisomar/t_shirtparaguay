@@ -394,6 +394,19 @@ section.block { padding: 88px 0 0; }
 .size-row button.out { color: var(--ink-3); background: transparent; box-shadow: inset 0 0 0 1px var(--line); text-decoration: line-through; }
 .stock-hint { margin-top: 10px; font-size: 14px; color: var(--ink-2); min-height: 21px; }
 .stock-hint.low { color: var(--warn); font-weight: 600; }
+/* Tabla de disponibles por talle y color */
+.stock-grid { margin-top: 18px; }
+.stock-grid .sg-scroll { overflow-x: auto; margin-top: 8px; }
+.stock-grid table { border-collapse: separate; border-spacing: 4px; font-size: 13.5px; min-width: 100%; }
+.stock-grid th { font-weight: 600; color: var(--ink-2); padding: 2px 4px; text-align: center; white-space: nowrap; }
+.stock-grid tbody th { text-align: left; color: var(--ink); font-weight: 500; }
+.stock-grid .sg-dot { display: inline-block; width: 12px; height: 12px; border-radius: 99px; margin-right: 6px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.stock-grid td { text-align: center; }
+.stock-grid td button { width: 100%; min-width: 40px; height: 34px; border: 0; border-radius: 10px; background: var(--surface); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.stock-grid td button.low { color: var(--warn); }
+.stock-grid td button.out { background: transparent; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+.stock-grid td button.on { background: var(--ink); color: var(--bg); }
+.stock-grid .sg-na { color: var(--ink-3); }
 .buy-actions { display: flex; gap: 10px; margin-top: 24px; }
 .qty { display: inline-flex; align-items: center; height: 52px; border-radius: 99px; background: var(--surface); }
 .qty button { width: 44px; height: 100%; border: 0; background: none; display: grid; place-items: center; }
@@ -613,3 +626,65 @@ table.sizes th { color: var(--ink-2); font-weight: 600; }
 .file-drop b { font-size: 15px; }
 .file-drop span { font-size: 13px; color: var(--ink-3); }
 .receipt-ok { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--ok-soft); color: var(--ok); font-weight: 600; font-size: 14px; }
+
+/* Líneas dentro de una categoría (Remeras › Oversize 30.1…) */
+.chips.lines { margin-top: 10px; }
+.chips.lines .chip { height: 36px; font-size: 13.5px; background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.chips.lines .chip.on { background: var(--ink); color: var(--bg); box-shadow: none; }
+.line-group + .line-group { margin-top: 40px; }
+.line-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.line-head h2 { font-size: 22px; }
+.line-head p { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+.line-head a { font-size: 14px; font-weight: 600; text-decoration: underline; white-space: nowrap; }
+@media (max-width: 640px) { .line-head { flex-direction: column; align-items: start; } }
+
+/* Menú: líneas de cada categoría */
+.nav-drop { position: relative; }
+.nav-drop > a { display: block; }
+.nav-menu { position: absolute; left: 0; top: 100%; z-index: 60; min-width: 260px; padding: 8px; margin-top: 6px; background: var(--bg); border-radius: var(--radius-s); box-shadow: var(--shadow), inset 0 0 0 1px var(--line); display: grid; opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .18s, transform .18s, visibility .18s; }
+.nav-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; }
+.nav-drop:hover .nav-menu, .nav-drop:focus-within .nav-menu { opacity: 1; visibility: visible; transform: none; }
+.nav .nav-menu a { border-radius: 10px; font-size: 14.5px; white-space: nowrap; }
+.mnav .panel a.sub { padding: 4px 0 4px 14px; color: var(--ink-2); font-size: 16px; }
+
+/* Los tres precios: por unidad, oferta y mayorista */
+.price-tiers { display: grid; gap: 2px; margin: 4px 0 14px; border-radius: var(--radius-s); overflow: hidden; }
+.price-tiers > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); font-size: 14.5px; }
+.price-tiers span { color: var(--ink-2); }
+.price-tiers small { display: block; font-size: 12.5px; color: var(--ink-3); }
+.price-tiers b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.price-tiers .was b { text-decoration: line-through; color: var(--ink-3); font-weight: 500; }
+.price-tiers .sale b { color: var(--danger); }
+.price-tiers .ws { background: var(--ok-soft); }
+.price-tiers .ws b { color: var(--ok); }
+
+/* Datos de la cuenta en el registro y al comprar sin cuenta */
+.account-box { margin-top: 18px; padding: 16px; border-radius: var(--radius-s); background: var(--surface); display: grid; gap: 2px; }
+.account-box > span { color: var(--ink-2); font-size: 14px; }
+
+.guest-note { color: var(--ink-2); margin: -4px 0 16px; font-size: 14.5px; }
+.guest-note a { color: var(--ink); font-weight: 600; text-decoration: underline; }
+.help-line { color: var(--ink-2); font-size: 14px; }
+.bank-inline { margin: -2px 0 4px 0; }
+
+/* Boleta en la página de gracias */
+.mini-invoice { border: 1px dashed var(--line); border-radius: var(--radius-s); padding: 16px; }
+.mini-invoice .mi-head { display: flex; justify-content: space-between; gap: 10px; }
+.mini-invoice .mi-head span, .mini-invoice .mi-client { color: var(--ink-2); font-size: 14px; }
+.mini-invoice .mi-client { margin: 4px 0 10px; }
+.mini-invoice table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mini-invoice th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.mini-invoice td { padding: 8px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.mini-invoice td small { display: block; color: var(--ink-3); font-size: 12.5px; }
+.mini-invoice .c { text-align: center; } .mini-invoice .r { text-align: right; white-space: nowrap; }
+@media (max-width: 520px) { .mini-invoice th:nth-child(3), .mini-invoice td:nth-child(3) { display: none; } }
+
+/* ---------- Ventanas de confirmación (SweetAlert2) con los colores de la tienda ---------- */
+.btn.danger { background: #dc2626; color: #fff; }
+.swal2-container.swal2-backdrop-show { background: rgba(10, 10, 10, .45); }
+.swal2-popup.sa-popup { background: var(--surface); color: var(--ink); border-radius: 24px; padding: 28px 24px 24px; font-family: var(--text); width: min(420px, calc(100vw - 32px)); }
+.sa-popup .swal2-title { color: var(--ink); font: 700 21px/1.25 var(--display); letter-spacing: -.01em; padding: 8px 8px 0; }
+.sa-popup .swal2-html-container { color: var(--ink-2); font-size: 15px; line-height: 1.5; margin: 10px 8px 0; }
+.sa-popup .swal2-icon { transform: scale(.75); margin: 0 auto -6px; }
+.sa-popup .swal2-actions.sa-actions { gap: 10px; margin-top: 22px; width: 100%; }
+.sa-popup .sa-actions .btn { flex: 1; min-width: 0; height: 46px; margin: 0; }

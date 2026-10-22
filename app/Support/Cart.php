@@ -81,7 +81,8 @@ class Cart
                 'wholesale' => $wholesale,
                 'total' => $price * $qty,
                 'image' => $image ? $image->url : $v->product->mainImageUrl(),
-                'over_stock' => $qty > $v->stock,
+                'available' => $v->available(),
+                'over_stock' => $qty > $v->available(),
             ]);
         }
 

@@ -28,7 +28,18 @@
     <nav class="nav" aria-label="Principal">
       <a href="{{ route('catalog') }}" class="{{ request()->routeIs('catalog') ? 'on' : '' }}">Tienda</a>
       @foreach ($navCategories as $c)
-        <a href="{{ route('category', $c) }}" class="{{ request()->is('categoria/'.$c->slug) ? 'on' : '' }}">{{ $c->name }}</a>
+        @php($navOn = request()->is('categoria/'.$c->slug) || $c->children->contains(fn ($l) => request()->is('categoria/'.$l->slug)))
+        @if ($c->children->isEmpty())
+          <a href="{{ route('category', $c) }}" class="{{ $navOn ? 'on' : '' }}">{{ $c->name }}</a>
+        @else
+          <div class="nav-drop">
+            <a href="{{ route('category', $c) }}" class="{{ $navOn ? 'on' : '' }}">{{ $c->name }}</a>
+            <div class="nav-menu">
+              <a href="{{ route('category', $c) }}"><b>Todas las {{ mb_strtolower($c->name) }}</b></a>
+              @foreach ($c->children as $l)<a href="{{ route('category', $l) }}">{{ $l->name }}</a>@endforeach
+            </div>
+          </div>
+        @endif
       @endforeach
       <a href="{{ route('catalog', ['oferta' => 1]) }}">Ofertas</a>
     </nav>
@@ -108,7 +119,10 @@
   <div class="panel">
     <div class="head">@include('partials.logo')<button class="icon-btn" data-close aria-label="Cerrar"><svg class="i"><use href="#i-close"/></svg></button></div>
     <a class="big" href="{{ route('catalog') }}">Tienda</a>
-    @foreach ($navCategories as $c)<a class="big" href="{{ route('category', $c) }}">{{ $c->name }}</a>@endforeach
+    @foreach ($navCategories as $c)
+      <a class="big" href="{{ route('category', $c) }}">{{ $c->name }}</a>
+      @foreach ($c->children as $l)<a class="sub" href="{{ route('category', $l) }}">{{ $l->name }}</a>@endforeach
+    @endforeach
     <a class="big" href="{{ route('catalog', ['oferta' => 1]) }}">Ofertas</a>
     <div style="margin-top:auto;display:grid;gap:10px;padding-top:24px">
       <a class="btn soft block" href="{{ route('favorites') }}"><svg class="i"><use href="#i-heart"/></svg> Favoritos</a>
@@ -149,6 +163,7 @@
     loginUrl: '{{ route('login') }}',
   };
 </script>
+<script src="{{ asset_v('vendor/sweetalert2/sweetalert2.all.min.js') }}" defer></script>
 <script src="{{ asset_v('js/shop.js') }}" defer></script>
 @stack('scripts')
 </body>

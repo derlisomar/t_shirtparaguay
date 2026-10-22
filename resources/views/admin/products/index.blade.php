@@ -4,7 +4,7 @@
 @section('content')
 <form class="filters-bar">
   <input class="input" name="q" value="{{ request('q') }}" placeholder="Buscar por nombre o código">
-  <select class="select" name="categoria" data-autosubmit><option value="">Todas las categorías</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(request('categoria') == $c->id)>{{ $c->name }}</option>@endforeach</select>
+  <select class="select" name="categoria" data-autosubmit><option value="">Todas las categorías</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(request('categoria') == $c->id)>{{ $c->depth ? '— ' : '' }}{{ $c->name }}</option>@endforeach</select>
   <select class="select" name="estado" data-autosubmit><option value="">Todos</option><option value="sin-stock" @selected(request('estado') === 'sin-stock')>Sin stock</option><option value="ocultos" @selected(request('estado') === 'ocultos')>Ocultos</option></select>
   <button class="btn sm soft">Buscar</button>
 </form>
@@ -32,5 +32,6 @@
     </tbody>
   </table>
 </div>
+@if ($products->total())<p class="help list-count">{{ $products->hasPages() ? 'Mostrando '.$products->firstItem().' a '.$products->lastItem().' de '.$products->total().' productos · 20 por página' : $products->total().' '.($products->total() === 1 ? 'producto' : 'productos') }}</p>@endif
 {{ $products->links() }}
 @endsection

@@ -14,10 +14,13 @@ use Illuminate\Validation\Rule;
 /** Venta en el local (punto de venta) desde el panel. */
 class PosController extends Controller
 {
+    /** Prendas por página en la grilla de venta */
+    private const PER_PAGE = 24;
+
     public function index(PaymentManager $payments)
     {
         return view('admin.pos', [
-            'categories' => Category::orderBy('sort_order')->get(),
+            'categories' => Category::roots()->orderBy('sort_order')->get(),
             'methods' => $payments->localMethods(),
         ]);
     }
@@ -28,11 +31,19 @@ class PosController extends Controller
         if ($t = trim((string) $request->input('q'))) {
             $q->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('sku', 'ilike', "%$t%"));
         }
-        if ($c = $request->input('categoria')) {
-            $q->where('category_id', $c);
+        if ($c = \App\Models\Category::find($request->input('categoria'))) {
+            $q->whereIn('category_id', $c->familyIds(false)); // incluye sus líneas
         }
 
-        return response()->json($q->take(40)->get()->map(fn ($p) => [
+        $page = $q->paginate(self::PER_PAGE);
+
+        return response()->json([
+            'page' => $page->currentPage(),
+            'last_page' => $page->lastPage(),
+            'total' => $page->total(),
+            'from' => $page->firstItem(),
+            'to' => $page->lastItem(),
+            'data' => $page->getCollection()->map(fn ($p) => [
             'id' => $p->id,
             'name' => $p->name,
             'price' => $p->price,
@@ -47,7 +58,8 @@ class PosController extends Controller
                 'hex' => $v->color?->hex,
                 'stock' => $v->stock,
             ]),
-        ]));
+        ]),
+        ]);
     }
 
     public function customers(Request $request)
@@ -58,9 +70,10 @@ class PosController extends Controller
         }
 
         return response()->json(User::where('is_admin', false)
-            ->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('email', 'ilike', "%$t%")
-                ->orWhere('phone', 'ilike', "%$t%")->orWhere('document', 'ilike', "%$t%"))
-            ->take(6)->get(['id', 'name', 'email', 'phone', 'document', 'is_wholesale', 'purchase_limit']));
+            ->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('last_name', 'ilike', "%$t%")->orWhere('email', 'ilike', "%$t%")
+                ->orWhere('username', 'ilike', "%$t%")->orWhere('phone', 'ilike', "%$t%")->orWhere('document', 'ilike', "%$t%"))
+            ->take(6)->get(['id', 'name', 'last_name', 'email', 'phone', 'document', 'is_wholesale', 'purchase_limit'])
+            ->map(fn ($u) => ['name' => $u->fullName()] + $u->only(['id', 'email', 'phone', 'document', 'is_wholesale', 'purchase_limit'])));
     }
 
     public function store(Request $request, PaymentManager $payments)
@@ -94,7 +107,7 @@ class PosController extends Controller
             'finished_at' => now(),
             'payment_method' => $data['payment_method'],
             'payment_status' => 'pagado',
-            'customer_name' => $customer?->name ?: ($data['customer_name'] ?? null) ?: 'Cliente de mostrador',
+            'customer_name' => $customer?->fullName() ?: ($data['customer_name'] ?? null) ?: 'Cliente de mostrador',
             'customer_email' => $customer?->email,
             'customer_phone' => $customer?->phone ?: ($data['customer_phone'] ?? null),
             'customer_document' => $customer?->document ?: ($data['customer_document'] ?? null),

@@ -26,8 +26,7 @@
     @if($order->discount)<tr><td>Descuento</td><td class="r">-{{ number_format($order->discount, 0, ',', '.') }}</td></tr>@endif
     @if($order->shipping)<tr><td>Envío</td><td class="r">{{ number_format($order->shipping, 0, ',', '.') }}</td></tr>@endif
     <tr class="tot"><td>TOTAL {{ setting('currency', 'Gs.') }}</td><td class="r">{{ number_format($order->total, 0, ',', '.') }}</td></tr>
-    <tr><td>Pago</td><td class="r">{{ $order->paymentLabel() }} ({{ strtolower($order->paymentStatusLabel()) }})</td></tr>
-    <tr><td>Estado</td><td class="r">{{ $order->statusLabel() }}</td></tr>
+    <tr><td>Pago</td><td class="r">{{ $order->paymentLabel() }}</td></tr>
     @if($order->cash_received)<tr><td>Recibido</td><td class="r">{{ number_format($order->cash_received, 0, ',', '.') }}</td></tr><tr><td>Vuelto</td><td class="r">{{ number_format(max(0, $order->cash_received - $order->total), 0, ',', '.') }}</td></tr>@endif
   </table>
   <hr>

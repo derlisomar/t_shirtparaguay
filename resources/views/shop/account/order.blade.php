@@ -8,6 +8,7 @@
     <div class="crumbs"><a href="{{ route('account') }}">Mi cuenta</a><span>/</span><span>{{ $order->number }}</span></div>
     <h1>Pedido {{ $order->number }}</h1>
     <p>{{ $order->created_at->format('d/m/Y H:i') }} · {{ $order->paymentLabel() }} · Pago {{ strtolower($order->paymentStatusLabel()) }}</p>
+    <a class="btn sm ghost" style="margin-top:12px" href="{{ route('checkout.invoice', $order) }}" target="_blank"><svg class="i" style="width:16px"><use href="#i-print"/></svg> Ver boleta</a>
   </div>
   @if ($order->status === 'cancelado')
     <div class="alert err">Este pedido fue cancelado.</div>

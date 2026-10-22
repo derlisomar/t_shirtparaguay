@@ -12,6 +12,7 @@
 <div class="wrap" data-pdp data-variants='@json($variants)' data-pre-size="{{ (int) request('talle') }}">
   <div class="crumbs" style="margin-top:24px">
     <a href="{{ route('home') }}">Inicio</a><span>/</span>
+    @if ($product->category?->parent)<a href="{{ route('category', $product->category->parent) }}">{{ $product->category->parent->name }}</a><span>/</span>@endif
     @if ($product->category)<a href="{{ route('category', $product->category) }}">{{ $product->category->name }}</a><span>/</span>@endif
     <span>{{ $product->name }}</span>
   </div>
@@ -35,14 +36,18 @@
         <b>{{ money($product->price) }}</b>
         @if ($product->isOnSale())<s>{{ money($product->compare_price) }}</s><span class="tag sale">-{{ $product->discountPercent() }}%</span>@endif
       </div>
-      @if ($product->hasWholesale())
-        @if (auth()->user()?->is_wholesale)
-          <div class="ws-box"><span class="tag">Mayorista</span><span>Tu precio de cliente mayorista: <b>{{ money($product->wholesale_price) }}</b> c/u</span></div>
-        @elseif ($product->wholesale_min_qty > 0)
-          <div class="ws-box"><span class="tag">Mayorista</span><span>Llevando <b>{{ $product->wholesale_min_qty }} o más</b> (talles y colores combinados) pagás <b>{{ money($product->wholesale_price) }}</b> c/u</span></div>
-        @endif
+      @if ($product->isOnSale() || $product->hasWholesale())
+        <div class="price-tiers">
+          <div class="{{ $product->isOnSale() ? 'was' : 'cur' }}"><span>Precio por unidad</span><b>{{ money($product->isOnSale() ? $product->compare_price : $product->price) }}</b></div>
+          @if ($product->isOnSale())
+            <div class="cur sale"><span>Precio de oferta</span><b>{{ money($product->price) }}</b></div>
+          @endif
+          @if ($product->hasWholesale() && (auth()->user()?->is_wholesale || $product->wholesale_min_qty > 0))
+            <div class="ws"><span>Precio mayorista @if (auth()->user()?->is_wholesale)<small>(tu precio de cliente mayorista)</small>@else<small>(llevando {{ $product->wholesale_min_qty }} o más, sumando talles y colores)</small>@endif</span><b>{{ money($product->wholesale_price) }}</b></div>
+          @endif
+        </div>
       @endif
-      <p style="color:var(--ink-2);font-size:14.5px">Envío gratis desde {{ money(setting('free_shipping_from', 400000)) }}</p>
+      @if (show_free_shipping())<p style="color:var(--ink-2);font-size:14.5px">Envío gratis desde {{ money(setting('free_shipping_from', 400000)) }}</p>@endif
 
       @if ($colors->count())
         <div class="opt">
@@ -65,6 +70,29 @@
         <div class="stock-hint" aria-live="polite"></div>
       </div>
 
+      @if ($sizes->count())
+        <div class="stock-grid">
+          <div class="opt-head"><span>Disponibles por talle{{ $colors->count() ? ' y color' : '' }}</span></div>
+          <div class="sg-scroll">
+            <table>
+              <thead><tr><th></th>@foreach ($sizes as $s)<th>{{ $s->name }}</th>@endforeach</tr></thead>
+              <tbody>
+                @foreach ($colors->count() ? $colors : [null] as $c)
+                  <tr>
+                    <th>@if ($c)<span class="sg-dot" style="background:{{ $c->hex }}"></span>{{ $c->name }}@else Unidades @endif</th>
+                    @foreach ($sizes as $s)
+                      @php($v = $product->variants->first(fn ($v) => $v->size_id === $s->id && $v->color_id === $c?->id))
+                      @php($n = $v ? $v->available() : null)
+                      <td>@if ($n === null)<span class="sg-na">—</span>@else<button type="button" class="{{ $n <= 0 ? 'out' : ($n <= 3 ? 'low' : '') }}" data-pick-size="{{ $s->id }}" data-pick-color="{{ $c?->id }}" aria-label="{{ $s->name }}{{ $c ? ' '.$c->name : '' }}: {{ $n }} disponibles">{{ $n }}</button>@endif</td>
+                    @endforeach
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
+      @endif
+
       <div class="buy-actions">
         <div class="qty">
           <button type="button" data-step="-1" aria-label="Uno menos"><svg class="i" style="width:16px"><use href="#i-minus"/></svg></button>
@@ -80,7 +108,7 @@
 
       <div class="acc">
         <details open><summary>Descripción</summary><div class="body">{{ $product->description }}</div></details>
-        <details><summary>Envíos y retiro</summary><div class="body">Envío a domicilio en Asunción y Central en 24 a 48 h hábiles ({{ money(setting('shipping_cost', 25000)) }}, gratis desde {{ money(setting('free_shipping_from', 400000)) }}). Al interior por transportadora.
+        <details><summary>Envíos y retiro</summary><div class="body">Envío a domicilio en Asunción y Central en 24 a 48 h hábiles ({{ money(setting('shipping_cost', 25000)) }}{{ show_free_shipping() ? ', gratis desde '.money(setting('free_shipping_from', 400000)) : '' }}). Al interior por transportadora.
 Retiro sin costo: {{ setting('pickup_address', setting('address')) }}</div></details>
         <details><summary>Cambios</summary><div class="body">Tenés 30 días para cambiar de talle o color. La prenda tiene que estar sin uso y con su etiqueta.</div></details>
       </div>
@@ -91,7 +119,7 @@ Retiro sin costo: {{ setting('pickup_address', setting('address')) }}</div></det
     <section class="block">
       <div class="block-head"><h2>También te puede gustar</h2></div>
       <div class="grid">
-        @foreach ($related as $product)@include('shop.partials.card')@endforeach
+        @foreach ($related as $rel)@include('shop.partials.card', ['product' => $rel])@endforeach
       </div>
     </section>
   @endif

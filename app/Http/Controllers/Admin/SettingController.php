@@ -13,7 +13,7 @@ class SettingController extends Controller
 {
     public const FIELDS = [
         'store_name', 'store_tagline', 'currency', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'email', 'address',
-        'shipping_cost', 'free_shipping_from', 'low_stock', 'bank_details', 'announcement', 'pickup_address',
+        'shipping_cost', 'free_shipping_from', 'low_stock', 'bank_details', 'announcement', 'pickup_address', 'slider_seconds', 'show_free_shipping',
     ];
 
     public function edit()
@@ -34,6 +34,12 @@ class SettingController extends Controller
             $v = $request->input($f);
             if (in_array($f, ['shipping_cost', 'free_shipping_from', 'low_stock'])) {
                 $v = (string) (int) preg_replace('/\D/', '', (string) $v);
+            }
+            if ($f === 'show_free_shipping') {
+                $v = $request->boolean($f) ? '1' : '0';
+            }
+            if ($f === 'slider_seconds') {
+                $v = (string) max(2, min(20, (int) $v ?: 4));
             }
             $values[$f] = $v;
         }

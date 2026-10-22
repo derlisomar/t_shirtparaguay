@@ -67,6 +67,14 @@ class Product extends Model
         return (int) ($this->relationLoaded('variants') ? $this->variants->sum('stock') : $this->variants()->sum('stock'));
     }
 
+    /** Unidades que la web todavía puede vender (descuenta lo reservado en pedidos pendientes) */
+    public function availableStock(): int
+    {
+        $variants = $this->relationLoaded('variants') ? $this->variants : $this->variants()->get();
+
+        return (int) $variants->sum(fn ($v) => $v->available());
+    }
+
     public function isOnSale(): bool
     {
         return $this->compare_price && $this->compare_price > $this->price;

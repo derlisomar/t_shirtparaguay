@@ -12,11 +12,16 @@
     <div style="display:grid;gap:20px">
       <div class="panel-card">
         <h2>Tus datos</h2>
-        <div class="form-grid">
-          <div class="field full"><label for="n">Nombre y apellido</label><input class="input" id="n" name="customer_name" value="{{ old('customer_name', $user->name) }}" required autocomplete="name"></div>
-          <div class="field"><label for="ph">Celular</label><input class="input" id="ph" name="customer_phone" value="{{ old('customer_phone', $user->phone) }}" required inputmode="tel" autocomplete="tel" placeholder="0981 123 456"></div>
-          <div class="field"><label for="doc">CI o RUC <span style="color:var(--ink-3);font-weight:400">(para la factura)</span></label><input class="input" id="doc" name="customer_document" value="{{ old('customer_document', $user->document) }}"></div>
-        </div>
+        @if ($user)
+          <div class="form-grid">
+            <div class="field full"><label for="n">Nombre y apellido</label><input class="input" id="n" name="customer_name" value="{{ old('customer_name', $user->fullName()) }}" required autocomplete="name"></div>
+            <div class="field"><label for="ph">Celular</label><input class="input" id="ph" name="customer_phone" value="{{ old('customer_phone', $user->phone) }}" required inputmode="tel" autocomplete="tel" placeholder="0981 123 456"></div>
+            <div class="field"><label for="doc">CI o RUC <span style="color:var(--ink-3);font-weight:400">(para la factura)</span></label><input class="input" id="doc" name="customer_document" value="{{ old('customer_document', $user->document) }}"></div>
+          </div>
+        @else
+          <p class="guest-note">¿Ya compraste antes? <a href="{{ route('login') }}">Ingresá con tu usuario</a>. Si es tu primera compra, completá tus datos: con ellos te creamos la cuenta para que sigas tu pedido. <b>El correo no es obligatorio.</b></p>
+          @include('shop.partials.account-fields')
+        @endif
       </div>
 
       <div class="panel-card">
@@ -25,11 +30,15 @@
           <label class="opt-card"><input type="radio" name="delivery_method" value="envio" @checked(old('delivery_method', 'envio') === 'envio')><span class="dot"></span><div><b>Envío a domicilio</b><span>24 a 48 h hábiles en Asunción y Central. {{ $shippingCost ? money($shippingCost) : 'Gratis' }}.</span></div></label>
           <label class="opt-card"><input type="radio" name="delivery_method" value="retiro" @checked(old('delivery_method') === 'retiro')><span class="dot"></span><div><b>Retiro en el local</b><span>Sin costo. {{ setting('pickup_address', setting('address')) }}</span></div></label>
         </div>
-        <div class="form-grid" data-address-box style="margin-top:18px">
-          <div class="field full"><label for="ad">Dirección</label><input class="input" id="ad" name="address" value="{{ old('address', $user->address) }}" autocomplete="street-address" placeholder="Calle, número y referencia"></div>
-          <div class="field"><label for="ci">Ciudad</label><input class="input" id="ci" name="city" value="{{ old('city', $user->city) }}" autocomplete="address-level2"></div>
-          <label class="check" style="align-self:end;padding-bottom:14px"><input type="checkbox" name="save_data" value="1" checked> Guardar para la próxima</label>
-        </div>
+        @if ($user)
+          <div class="form-grid" data-address-box style="margin-top:18px">
+            <div class="field full"><label for="ad">Dirección</label><input class="input" id="ad" name="address" value="{{ old('address', $user->address) }}" autocomplete="street-address" placeholder="Calle, número y referencia"></div>
+            <div class="field"><label for="ci">Ciudad</label><input class="input" id="ci" name="city" value="{{ old('city', $user->city) }}" autocomplete="address-level2"></div>
+            <label class="check" style="align-self:end;padding-bottom:14px"><input type="checkbox" name="save_data" value="1" checked> Guardar para la próxima</label>
+          </div>
+        @else
+          <p class="help-line" data-address-box style="margin-top:14px">Lo enviamos a la dirección que pusiste en tus datos.</p>
+        @endif
         <div class="field" style="margin-top:16px"><label for="no">Notas <span style="color:var(--ink-3);font-weight:400">(opcional)</span></label><textarea class="textarea" id="no" name="notes" placeholder="Horario de entrega, timbre, etc.">{{ old('notes') }}</textarea></div>
       </div>
 
@@ -44,7 +53,7 @@
                 <b>{{ $m['label'] }}</b>
                 <span>
                   @switch($key)
-                    @case('transferencia') Te mostramos los datos de la cuenta al confirmar. @break
+                    @case('transferencia') Transferí a esta cuenta y adjuntá el comprobante (o mandalo después). @break
                     @case('efectivo') Pagás cuando recibís o retirás tu pedido. @break
                     @case('tarjeta') Visa, Mastercard y tarjetas locales. @break
                   @endswitch
@@ -52,6 +61,9 @@
               </div>
               @unless ($m['available'])<span class="pill soon">Próximamente</span>@endunless
             </label>
+            @if ($key === 'transferencia' && $m['available'] && setting('bank_details'))
+              <div class="bank bank-inline" data-bank-box>{{ setting('bank_details') }}</div>
+            @endif
           @endforeach
         </div>
         <div data-receipt-box style="margin-top:18px;display:grid;gap:8px">
