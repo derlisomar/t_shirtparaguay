@@ -23,11 +23,9 @@ Ya tenés PHP 8.2 (XAMPP) y PostgreSQL 13 andando, así que son 5 pasos. No hace
 
 Descomprimí `tshirtparaguay.zip` en `C:\tiendas\`. Te queda la carpeta `C:\tiendas\tshirtparaguay` con todo adentro (incluida la carpeta `vendor`).
 
-## 4. Poner tu contraseña de PostgreSQL
+## 4. Tu contraseña de PostgreSQL
 
-1. En la carpeta de la tienda, abrí el archivo `.env` con el Bloc de notas (clic derecho → Abrir con → Bloc de notas).
-2. Buscá la línea `DB_PASSWORD=` y poné tu contraseña de PostgreSQL pegada, por ejemplo `DB_PASSWORD=miclave123`.
-3. Guardá y cerrá.
+No hace falta tocar nada: la primera vez que abras `INSTALAR-BASE-DE-DATOS.bat` te pide la contraseña de PostgreSQL (la misma que usás en pgAdmin) y la guarda en el archivo `.env`. Si alguna vez la cambiás, abrí `.env` con el Bloc de notas y corregí la línea `DB_PASSWORD=`.
 
 ## 5. Cargar la base y abrir la tienda
 
@@ -44,7 +42,9 @@ El panel está en **http://localhost:8000/admin**
 
 Las actualizaciones mantienen tus productos, clientes y pedidos.
 
-> **Actualización 6 (Reportes):** si ya tenías la actualización 5, solo copiá `tshirtparaguay-actualizacion-6.zip` encima de la carpeta de la tienda y aceptá reemplazar. No hace falta tocar la base. Vas a ver **Reportes** en el menú del panel. Si venís de una versión más vieja, primero hacé los pasos de abajo con la actualización 5.
+> **Importante:** para actualizar usá siempre el zip que dice **actualizacion**, no el `tshirtparaguay.zip` completo. El completo es para instalar desde cero.
+
+> **Actualización 12 (bloque del inicio editable, modo oscuro verde y código SKU sugerido):** si ya tenías la actualización 5 o posterior, solo copiá `tshirtparaguay-actualizacion-12.zip` encima de la carpeta de la tienda y aceptá reemplazar. No hace falta tocar la base. Trae todo lo de la actualización 9 (Reportes con Excel y PDF, Vender con páginas, ventanas de confirmación nuevas) y además: el bloque «Diseñado en Paraguay…» del inicio se edita en **Configuración › Bloque del inicio** (título, texto, botón, link y foto, o se puede ocultar); el modo oscuro usa el verde #2C362F en lugar de negro; en cada producto el campo **Código (SKU)** explica para qué sirve, tiene un botón **Sugerir** que arma un código libre según la categoría y no deja repetir códigos; en **Vender** se puede buscar por ese código y aparece debajo del nombre. Si venís de una versión más vieja, primero hacé los pasos de abajo con la actualización 5.
 
 1. Copiá los archivos de `tshirtparaguay-actualizacion-5.zip` **encima** de tu carpeta de la tienda (aceptá **reemplazar**). Ese zip no trae el `.env`, así que tu contraseña queda igual.
 2. Actualizá la base con **una** de estas dos formas:
@@ -66,6 +66,7 @@ Solo doble clic en `INICIAR-TIENDA.bat`. Mientras esa ventana negra esté abiert
 | Mensaje | Qué hacer |
 |---|---|
 | `could not find driver` | Falta el paso 1 (activar `pdo_pgsql` y `pgsql` en `php.ini`). |
+| `no password supplied` | Falta la contraseña en el `.env`. Abrilo con el Bloc de notas, poné tu contraseña de PostgreSQL en la línea `DB_PASSWORD=` y guardá. |
 | `password authentication failed` | La contraseña del `.env` no es la de PostgreSQL. Corregila y repetí el paso 5. |
 | `database "tshirtparaguay" does not exist` | Falta el paso 2. |
 | `"php" no se reconoce…` | XAMPP no está en `C:\xampp`. Editá los `.bat` y cambiá `C:\xampp\php\php.exe` por la ruta donde lo tengas. |

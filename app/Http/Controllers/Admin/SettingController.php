@@ -14,6 +14,7 @@ class SettingController extends Controller
     public const FIELDS = [
         'store_name', 'store_tagline', 'currency', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'email', 'address',
         'shipping_cost', 'free_shipping_from', 'low_stock', 'bank_details', 'announcement', 'pickup_address', 'slider_seconds', 'show_free_shipping',
+        'story_show', 'story_title', 'story_text', 'story_button', 'story_link',
     ];
 
     public function edit()
@@ -28,6 +29,13 @@ class SettingController extends Controller
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
             'logo_dark' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
             'favicon' => 'nullable|image|mimes:png,svg,ico|max:512',
+            'story_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
+            'story_title' => 'nullable|string|max:120',
+            'story_text' => 'nullable|string|max:600',
+            'story_button' => 'nullable|string|max:40',
+            'story_link' => 'nullable|string|max:255',
+        ], [
+            'story_image.max' => 'La foto del bloque del inicio puede pesar hasta 6 MB.',
         ]);
         $values = [];
         foreach (self::FIELDS as $f) {
@@ -35,18 +43,21 @@ class SettingController extends Controller
             if (in_array($f, ['shipping_cost', 'free_shipping_from', 'low_stock'])) {
                 $v = (string) (int) preg_replace('/\D/', '', (string) $v);
             }
-            if ($f === 'show_free_shipping') {
+            if ($f === 'show_free_shipping' || $f === 'story_show') {
                 $v = $request->boolean($f) ? '1' : '0';
+            }
+            if (in_array($f, ['story_text', 'story_button'])) {
+                $v = (string) $v; // vacío a propósito = sin texto / sin botón
             }
             if ($f === 'slider_seconds') {
                 $v = (string) max(2, min(20, (int) $v ?: 4));
             }
             $values[$f] = $v;
         }
-        foreach (['logo', 'logo_dark', 'favicon'] as $f) {
+        foreach (['logo', 'logo_dark', 'favicon', 'story_image'] as $f) {
             if ($request->hasFile($f)) {
                 Uploads::delete(setting($f));
-                $values[$f] = Uploads::store($request->file($f), 'brand');
+                $values[$f] = Uploads::store($request->file($f), $f === 'story_image' ? 'home' : 'brand');
             } elseif ($request->boolean("remove_$f")) {
                 Uploads::delete(setting($f));
                 $values[$f] = null;

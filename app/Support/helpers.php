@@ -55,3 +55,30 @@ if (! function_exists('asset_v')) {
         return asset($path).(is_file($file) ? '?v='.filemtime($file) : '');
     }
 }
+
+if (! function_exists('story')) {
+    /**
+     * Textos del bloque «Diseñado en Paraguay…» del inicio (Configuración › Inicio).
+     * En el título, lo que va entre asteriscos sale en naranja y cursiva.
+     */
+    function story(): array
+    {
+        // Texto y botón pueden quedar vacíos a propósito (sin texto / sin botón)
+        try {
+            $all = Setting::allCached();
+        } catch (\Throwable $e) {
+            $all = [];
+        }
+        $raw = fn ($k, $d) => array_key_exists($k, $all) && $all[$k] !== null ? trim((string) $all[$k]) : $d;
+        $title = setting('story_title', 'Diseñado en *Paraguay,* para el calor de acá.');
+
+        return [
+            'show' => setting('story_show', '1') !== '0',
+            'title' => preg_replace('/\*(.+?)\*/u', '<em>$1</em>', e($title)),
+            'text' => $raw('story_text', 'Algodón que respira, estampas con guiños nuestros (tereré, ñandutí, jopará) y talles que van del S al XXL. Si no te queda, lo cambiás sin vueltas.'),
+            'button' => $raw('story_button', 'Conocé la colección'),
+            'link' => setting('story_link') ?: route('catalog'),
+            'image' => setting('story_image') ? upload_url(setting('story_image')) : asset('uploads/seed/products/remera-nanduti--rosa--detalle.webp'),
+        ];
+    }
+}

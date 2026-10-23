@@ -68,6 +68,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('reportes', [Admin\ReportController::class, 'index'])->name('reports');
         Route::get('reportes/exportar/{type}', [Admin\ReportController::class, 'export'])->name('reports.export');
 
+        Route::get('productos/sugerir-codigo', [Admin\ProductController::class, 'suggestSku'])->name('products.sku');
         Route::resource('productos', Admin\ProductController::class)
             ->parameters(['productos' => 'product'])->except('show')->names('products');
         Route::delete('productos/{product}/fotos/{image}', [Admin\ProductController::class, 'destroyImage'])->name('products.images.destroy');

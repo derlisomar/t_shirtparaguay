@@ -18,7 +18,8 @@ class ProductController extends Controller
     {
         $q = Product::with(['category', 'images', 'variants'])->latest('id');
         if ($t = $request->input('q')) {
-            $q->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('sku', 'ilike', "%$t%"));
+            $q->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('sku', 'ilike', "%$t%")
+                ->orWhereHas('variants', fn ($v) => $v->where('sku', 'ilike', "%$t%")));
         }
         if ($c = \App\Models\Category::find($request->input('categoria'))) {
             $q->whereIn('category_id', $c->familyIds(false)); // incluye sus líneas
@@ -45,8 +46,18 @@ class ProductController extends Controller
         return $this->form($product->load(['images', 'variants']));
     }
 
+    /** Código sugerido para un producto nuevo, según la categoría elegida */
+    public function suggestSku(Request $request)
+    {
+        return response()->json(['sku' => Product::suggestSku(Category::find($request->input('categoria')))]);
+    }
+
     private function form(Product $product)
     {
+        if (! $product->exists && ! $product->sku) {
+            $product->sku = Product::suggestSku();
+        }
+
         return view('admin.products.form', [
             'product' => $product,
             'categories' => Category::tree(),
@@ -76,7 +87,12 @@ class ProductController extends Controller
             'name' => 'required|string|max:160',
             'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string|max:5000',
-            'sku' => 'nullable|string|max:60',
+            'sku' => ['nullable', 'string', 'max:60', function ($attr, $value, $fail) use ($product) {
+                $other = Product::where('id', '!=', $product->id ?? 0)->whereRaw('lower(sku) = ?', [mb_strtolower(trim($value))])->first();
+                if ($other) {
+                    $fail('Ese código ya lo usa «'.$other->name.'». Tocá «Sugerir» para tener uno libre.');
+                }
+            }],
             'unit_price' => 'required',
             'offer_price' => 'nullable',
             'wholesale_price' => 'nullable',
@@ -119,7 +135,7 @@ class ProductController extends Controller
                 'name' => $data['name'],
                 'category_id' => $data['category_id'] ?? null,
                 'description' => $data['description'] ?? null,
-                'sku' => $data['sku'] ?? null,
+                'sku' => isset($data['sku']) && trim($data['sku']) !== '' ? mb_strtoupper(trim($data['sku'])) : null,
                 'price' => $price,
                 'compare_price' => $compare > 0 ? $compare : null,
                 'wholesale_price' => $wholesale > 0 ? $wholesale : null,
@@ -189,6 +205,7 @@ class ProductController extends Controller
         $copy = $product->replicate(['slug', 'sold_count']);
         $copy->name = $product->name.' (copia)';
         $copy->is_active = false;
+        $copy->sku = Product::suggestSku($product->category);
         $copy->save();
         foreach ($product->variants as $v) {
             $copy->variants()->create($v->only('size_id', 'color_id') + ['stock' => 0]);

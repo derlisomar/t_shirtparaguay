@@ -29,7 +29,8 @@ class PosController extends Controller
     {
         $q = Product::active()->with(['images', 'variants.size', 'variants.color'])->orderBy('name');
         if ($t = trim((string) $request->input('q'))) {
-            $q->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('sku', 'ilike', "%$t%"));
+            $q->where(fn ($w) => $w->where('name', 'ilike', "%$t%")->orWhere('sku', 'ilike', "%$t%")
+                ->orWhereHas('variants', fn ($v) => $v->where('sku', 'ilike', "%$t%")));
         }
         if ($c = \App\Models\Category::find($request->input('categoria'))) {
             $q->whereIn('category_id', $c->familyIds(false)); // incluye sus líneas
@@ -46,6 +47,7 @@ class PosController extends Controller
             'data' => $page->getCollection()->map(fn ($p) => [
             'id' => $p->id,
             'name' => $p->name,
+            'sku' => $p->sku,
             'price' => $p->price,
             'price_text' => money($p->price),
             'wholesale_price' => $p->hasWholesale() ? $p->wholesale_price : null,

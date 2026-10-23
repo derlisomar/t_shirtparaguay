@@ -272,3 +272,9 @@ table.t td:first-child, table.t td.r { white-space: nowrap; }
 .pager button { min-width: 42px; height: 42px; padding: 0 12px; border-radius: 99px; display: grid; place-items: center; background: var(--surface); font-weight: 600; border: 0; color: inherit; cursor: pointer; }
 .pager button:hover { background: var(--surface-3); }
 .list-count { margin-top: 12px; text-align: center; }
+
+/* Código (SKU) en el formulario de producto y en Vender */
+.sku-row { display: flex; gap: 8px; }
+.sku-row .input { flex: 1; min-width: 0; text-transform: uppercase; }
+.sku-row .btn { height: auto; flex: none; }
+.pos-item .pi-sku { display: block; font-size: 11px; letter-spacing: .04em; color: var(--ink-2); font-weight: 600; }

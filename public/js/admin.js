@@ -83,6 +83,23 @@
     });
   }
 
+  // ---------- Formulario de producto: código sugerido ----------
+  const sku = $('[data-sku]');
+  if (sku) {
+    const cat = sku.form.querySelector('[name=category_id]');
+    const suggest = async () => {
+      try {
+        const r = await fetch(sku.dataset.skuUrl + '?categoria=' + encodeURIComponent(cat ? cat.value : ''), { headers: { Accept: 'application/json' } });
+        sku.value = (await r.json()).sku; sku.dataset.skuAuto = '';
+      } catch (e) { toast('No se pudo sugerir un código'); }
+    };
+    $('[data-sku-suggest]').addEventListener('click', suggest);
+    // En un producto nuevo, el código sugerido sigue a la categoría hasta que lo escribas a mano
+    sku.addEventListener('input', () => delete sku.dataset.skuAuto);
+    if (cat) cat.addEventListener('change', () => { if ('skuAuto' in sku.dataset) suggest(); });
+    if ('skuAuto' in sku.dataset && cat && cat.value) suggest();
+  }
+
   // ---------- Formulario de producto: grilla talle × color ----------
   const grid = $('[data-stock-grid]');
   if (grid) {
@@ -199,7 +216,7 @@
       pagerEl.innerHTML = pager(res.page, res.last_page);
       gridEl.innerHTML = products.length ? products.map((p, i) => {
         const st = p.variants.reduce((a, v) => a + v.stock, 0);
-        return `<button type="button" class="pos-item${st ? '' : ' out'}" data-i="${i}"><img src="${p.image}" alt="" loading="lazy"><span class="pi"><b>${esc(p.name)}</b><span>${p.price_text} · ${st ? st + ' en stock' : 'Agotado'}</span>${p.wholesale_price ? `<span>May. ${money(p.wholesale_price)}${p.wholesale_min ? ' desde ' + p.wholesale_min : ''}</span>` : ''}</span></button>`;
+        return `<button type="button" class="pos-item${st ? '' : ' out'}" data-i="${i}"><img src="${p.image}" alt="" loading="lazy"><span class="pi"><b>${esc(p.name)}</b>${p.sku ? `<small class="pi-sku">${esc(p.sku)}</small>` : ''}<span>${p.price_text} · ${st ? st + ' en stock' : 'Agotado'}</span>${p.wholesale_price ? `<span>May. ${money(p.wholesale_price)}${p.wholesale_min ? ' desde ' + p.wholesale_min : ''}</span>` : ''}</span></button>`;
       }).join('') : '<p class="help">No hay prendas con ese nombre.</p>';
     }
     // Paginador: anterior, páginas cercanas y siguiente

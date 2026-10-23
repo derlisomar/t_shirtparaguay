@@ -16,7 +16,7 @@
       @php($st = $p->totalStock())
       <tr>
         <td style="width:60px"><img class="thumb" src="{{ $p->mainImageUrl() }}" alt=""></td>
-        <td><a href="{{ route('admin.products.edit', $p) }}"><b>{{ $p->name }}</b></a><br><span class="help">{{ $p->sku }} · {{ $p->variants->count() }} variantes</span></td>
+        <td><a href="{{ route('admin.products.edit', $p) }}"><b>{{ $p->name }}</b></a><br><span class="help">@if($p->sku){{ $p->sku }} · @endif{{ $p->variants->count() }} variantes</span></td>
         <td>{{ $p->category?->name ?? '—' }}</td>
         <td class="r"><b>{{ money($p->price) }}</b>@if($p->isOnSale())<br><s class="help">{{ money($p->compare_price) }}</s>@endif</td>
         <td class="r"><span class="pill {{ $st <= 0 ? 'err' : ($st <= 5 ? 'warn' : 'ok') }}">{{ $st }}</span></td>

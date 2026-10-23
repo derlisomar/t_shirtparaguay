@@ -87,16 +87,19 @@
   </section>
   @endif
 
+  @php($st = story())
+  @if ($st['show'])
   <section class="block reveal">
     <div class="story">
       <div class="txt">
-        <h2>Diseñado en <em>Paraguay,</em> para el calor de acá.</h2>
-        <p>Algodón que respira, estampas con guiños nuestros (tereré, ñandutí, jopará) y talles que van del S al XXL. Si no te queda, lo cambiás sin vueltas.</p>
-        <a class="btn" href="{{ route('catalog') }}">Conocé la colección <svg class="i" style="width:16px;height:16px"><use href="#i-arrow"/></svg></a>
+        <h2>{!! $st['title'] !!}</h2>
+        @if ($st['text'])<p>{!! nl2br(e($st['text'])) !!}</p>@endif
+        @if ($st['button'])<a class="btn" href="{{ $st['link'] }}">{{ $st['button'] }} <svg class="i" style="width:16px;height:16px"><use href="#i-arrow"/></svg></a>@endif
       </div>
-      <div class="pic"><img src="{{ asset('uploads/seed/products/remera-nanduti--rosa--detalle.webp') }}" alt="Estampa ñandutí de cerca" loading="lazy"></div>
+      <div class="pic"><img src="{{ $st['image'] }}" alt="" loading="lazy"></div>
     </div>
   </section>
+  @endif
 
   @if ($featured->count())
   <section class="block reveal">

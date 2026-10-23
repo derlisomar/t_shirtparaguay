@@ -15,10 +15,25 @@
           @foreach (['logo' => 'Logo (modo claro)', 'logo_dark' => 'Logo para modo oscuro (opcional)', 'favicon' => 'Ícono de la pestaña (PNG cuadrado)'] as $f => $label)
             <div class="field {{ $f === 'favicon' ? 'full' : '' }}"><label>{{ $label }}</label>
               <input type="file" name="{{ $f }}" accept="image/*">
-              @if (! empty($s[$f]))<div class="file-cur"><img src="{{ upload_url($s[$f]) }}" alt="" style="{{ $f === 'logo_dark' ? 'background:#151413' : '' }}"><label class="check"><input type="checkbox" name="remove_{{ $f }}" value="1"> Quitar</label></div>@endif
+              @if (! empty($s[$f]))<div class="file-cur"><img src="{{ upload_url($s[$f]) }}" alt="" style="{{ $f === 'logo_dark' ? 'background:#2c362f' : '' }}"><label class="check"><input type="checkbox" name="remove_{{ $f }}" value="1"> Quitar</label></div>@endif
             </div>
           @endforeach
           <p class="help full">Mientras no subas un logo se usa el de texto «t_shirt PY». Recomendado: PNG o SVG con fondo transparente, unos 400 × 120 px.</p>
+        </div>
+      </div>
+      <div class="box">
+        <h2>Bloque del inicio</h2>
+        <p class="help" style="margin:-6px 0 14px">El recuadro «Diseñado en Paraguay…» que aparece en el inicio, debajo de las categorías.</p>
+        <div class="form-grid">
+          <label class="switch full">Mostrar este bloque en el inicio <input type="checkbox" name="story_show" value="1" @checked(($s['story_show'] ?? '1') !== '0')></label>
+          <div class="field full"><label>Título <span class="help">(lo que pongas entre *asteriscos* sale en naranja y cursiva)</span></label><input class="input" name="story_title" maxlength="120" value="{{ $s['story_title'] ?? 'Diseñado en *Paraguay,* para el calor de acá.' }}"></div>
+          <div class="field full"><label>Texto</label><textarea class="textarea" name="story_text" rows="3" maxlength="600">{{ $s['story_text'] ?? 'Algodón que respira, estampas con guiños nuestros (tereré, ñandutí, jopará) y talles que van del S al XXL. Si no te queda, lo cambiás sin vueltas.' }}</textarea></div>
+          <div class="field"><label>Texto del botón <span class="help">(vacío = sin botón)</span></label><input class="input" name="story_button" maxlength="40" value="{{ $s['story_button'] ?? 'Conocé la colección' }}"></div>
+          <div class="field"><label>Link del botón <span class="help">(vacío = la tienda)</span></label><input class="input" name="story_link" value="{{ $s['story_link'] ?? '' }}" placeholder="{{ route('catalog') }}"></div>
+          <div class="field full"><label>Foto <span class="help">(opcional; vertical o cuadrada, JPG, PNG o WEBP)</span></label>
+            <input type="file" name="story_image" accept="image/*">
+            <div class="file-cur"><img src="{{ story()['image'] }}" alt="">@if (! empty($s['story_image']))<label class="check"><input type="checkbox" name="remove_story_image" value="1"> Volver a la foto de ejemplo</label>@endif</div>
+          </div>
         </div>
       </div>
       <div class="box">

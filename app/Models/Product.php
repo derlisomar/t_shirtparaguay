@@ -132,4 +132,44 @@ class Product extends Model
     {
         return $this->variants->pluck('size')->filter()->unique('id')->sortBy('sort_order')->values();
     }
+
+    /**
+     * Un código que todavía no usa ningún producto, armado con la categoría:
+     * «REM-001» para Remeras, «REM-OVE30-001» para la línea Oversize 30.1 de Remeras.
+     */
+    public static function suggestSku(?Category $category = null): string
+    {
+        // Tres letras del nombre y, si tiene, el número del hilo: «Oversize algodón peinado 30.1» → OVE30
+        $abbr = function (string $name) {
+            $plain = strtoupper(Str::ascii($name));
+            $code = substr(preg_replace('/[^A-Z]/', '', $plain), 0, 3) ?: 'PRD';
+            if (preg_match('/\d+/', $plain, $m)) {
+                $code .= substr($m[0], 0, 3);
+            }
+
+            return $code;
+        };
+        $parts = [];
+        if ($category) {
+            if ($category->parent) {
+                $parts[] = $abbr($category->parent->name);
+            }
+            $parts[] = $abbr($category->name);
+        }
+        $prefix = implode('-', $parts ?: ['PRD']).'-';
+
+        $used = static::whereNotNull('sku')->where('sku', 'ilike', $prefix.'%')->pluck('sku')
+            ->map(fn ($s) => mb_strtoupper($s))->all();
+        $n = 1;
+        foreach ($used as $s) {
+            if (preg_match('/^'.preg_quote($prefix, '/').'(\d+)$/', $s, $m)) {
+                $n = max($n, (int) $m[1] + 1);
+            }
+        }
+        while (in_array($prefix.str_pad($n, 3, '0', STR_PAD_LEFT), $used, true)) {
+            $n++;
+        }
+
+        return $prefix.str_pad($n, 3, '0', STR_PAD_LEFT);
+    }
 }

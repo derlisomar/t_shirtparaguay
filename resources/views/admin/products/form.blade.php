@@ -94,7 +94,10 @@
         <div class="field"><label>Categoría</label>
           <select class="select input" name="category_id" style="border-radius:14px"><option value="">Sin categoría</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(old('category_id', $product->category_id) == $c->id)>{{ $c->depth ? '— ' : '' }}{{ $c->name }}</option>@endforeach</select>
         </div>
-        <div class="field" style="margin-top:12px"><label>Código (SKU)</label><input class="input" name="sku" value="{{ old('sku', $product->sku) }}"></div>
+        <div class="field" style="margin-top:12px"><label>Código (SKU) <span class="help">(opcional)</span></label>
+          <div class="sku-row"><input class="input" name="sku" value="{{ old('sku', $product->sku) }}" maxlength="60" autocomplete="off" data-sku data-sku-url="{{ route('admin.products.sku') }}" @if(! $product->exists) data-sku-auto @endif><button type="button" class="btn ghost sm" data-sku-suggest>Sugerir</button></div>
+          <span class="help">Código interno para identificar la prenda; el cliente no lo ve. Con él la encontrás rápido en <b>Vender</b> y en esta lista de productos. «Sugerir» arma uno libre según la categoría (ej.: REM-OVE30-001). No se puede repetir.</span>
+        </div>
         <div class="field" style="margin-top:12px"><label>Dirección web <span class="help">(opcional)</span></label><input class="input" name="slug" value="{{ old('slug', $product->slug) }}" placeholder="se arma sola con el nombre"></div>
       </div>
       <button class="btn accent block" style="height:52px">Guardar producto</button>
